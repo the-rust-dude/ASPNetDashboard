@@ -1,0 +1,69 @@
+@model ASPNetDashboard.Models.UserModel
+@{ ViewData["Title"] = "Edit User"; }
+
+<div class="row justify-content-center">
+<div class="col-lg-7">
+
+<nav aria-label="breadcrumb" class="mb-3">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a asp-controller="User" asp-action="Index">Users</a></li>
+        <li class="breadcrumb-item active">Edit #@Model.Id</li>
+    </ol>
+</nav>
+
+<div class="form-wrap">
+    <div class="fw-head">
+        <div class="u-ava" style="width:52px;height:52px;font-size:1.3rem;border-radius:var(--r-md);">
+            @Model.Name[0]
+        </div>
+        <div>
+            <div class="fw-title">Editing: @Model.Name</div>
+            <div class="fw-sub">Password is not changed here. Update name, email, or age only.</div>
+        </div>
+    </div>
+
+    <form asp-controller="User" asp-action="Edit" method="post" novalidate>
+        @Html.AntiForgeryToken()
+        <input asp-for="Id" type="hidden" />
+        <div asp-validation-summary="ModelOnly" class="alert alert-danger py-2 small mb-4"></div>
+
+        <div class="mb-4">
+            <label asp-for="Name" class="form-label">Full Name <span style="color:var(--red)">*</span></label>
+            <div class="input-group">
+                <span class="input-group-text"><i class="bi bi-person"></i></span>
+                <input asp-for="Name" class="form-control" />
+            </div>
+            <span asp-validation-for="Name" class="invalid-feedback d-block"></span>
+        </div>
+
+        <div class="mb-4">
+            <label asp-for="Email" class="form-label">Email Address <span style="color:var(--red)">*</span></label>
+            <div class="input-group">
+                <span class="input-group-text"><i class="bi bi-envelope"></i></span>
+                <input asp-for="Email" class="form-control" type="email" />
+            </div>
+            <span asp-validation-for="Email" class="invalid-feedback d-block"></span>
+        </div>
+
+        <div class="mb-5">
+            <label asp-for="Age" class="form-label">Age <span style="color:var(--red)">*</span></label>
+            <div class="input-group" style="max-width:200px;">
+                <span class="input-group-text"><i class="bi bi-calendar-event"></i></span>
+                <input asp-for="Age" class="form-control" type="number" min="18" max="60" />
+            </div>
+            <span asp-validation-for="Age" class="invalid-feedback d-block"></span>
+        </div>
+
+        <div class="d-flex gap-3">
+            <button type="submit" class="btn btn-warning">
+                <i class="bi bi-check-circle-fill me-1"></i>Update User
+            </button>
+            <a asp-controller="User" asp-action="Index" class="btn btn-outline-secondary">
+                <i class="bi bi-arrow-left me-1"></i>Cancel
+            </a>
+        </div>
+    </form>
+</div>
+
+</div>
+</div>

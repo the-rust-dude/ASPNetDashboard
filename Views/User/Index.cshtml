@@ -1,0 +1,125 @@
+@model List<ASPNetDashboard.Models.UserModel>
+@{
+    ViewData["Title"] = "Users";
+    var role   = ViewBag.Role as string ?? "Guest";
+    var search = ViewBag.Search as string ?? "";
+    var sortBy = ViewBag.SortBy as string ?? "";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h4 class="fw-bold mb-1" style="letter-spacing:-.02em;">User Records</h4>
+        <p class="mb-0" style="color:var(--text-3);font-size:.875rem;">
+            @Model.Count user(s) found
+            @if (role == "Guest")
+            {
+                <span class="pill p-neutral ms-2">
+                    <i class="bi bi-eye"></i> Read-only
+                </span>
+            }
+        </p>
+    </div>
+    @if (role == "Admin")
+    {
+        <a asp-controller="User" asp-action="Create" class="btn btn-primary">
+            <i class="bi bi-person-plus-fill me-1"></i>Add User
+        </a>
+    }
+</div>
+
+<!-- Filter bar -->
+<div class="fbar mb-4">
+    <form method="get" class="row g-2 align-items-end">
+        <div class="col-sm-6 col-md-5">
+            <label class="form-label">Search</label>
+            <div class="input-group">
+                <span class="input-group-text"><i class="bi bi-search"></i></span>
+                <input type="text" name="search" value="@search" class="form-control"
+                       placeholder="Name or email…" />
+            </div>
+        </div>
+        <div class="col-sm-4 col-md-3">
+            <label class="form-label">Sort By</label>
+            <select name="sortBy" class="form-select">
+                <option value=""     selected="@(sortBy == "")">Default</option>
+                <option value="name" selected="@(sortBy == "name")">Name A–Z</option>
+                <option value="age"  selected="@(sortBy == "age")">Age</option>
+                <option value="date" selected="@(sortBy == "date")">Newest First</option>
+            </select>
+        </div>
+        <div class="col-auto d-flex gap-2">
+            <button type="submit" class="btn btn-primary btn-sm">
+                <i class="bi bi-funnel-fill me-1"></i>Filter
+            </button>
+            <a asp-controller="User" asp-action="Index" class="btn btn-outline-secondary btn-sm">
+                <i class="bi bi-x me-1"></i>Reset
+            </a>
+        </div>
+    </form>
+</div>
+
+<!-- Table -->
+<div class="dcard">
+    @if (!Model.Any())
+    {
+        <div class="empty-state">
+            <div class="empty-ico"><i class="bi bi-people"></i></div>
+            <p>No users found.@(role=="Admin" ? " Try adding one!" : "")</p>
+        </div>
+    }
+    else
+    {
+        <div class="table-responsive">
+            <table class="table mb-0">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>User</th>
+                        <th>Age</th>
+                        <th>Registered</th>
+                        @if (role == "Admin") { <th style="text-align:center;">Actions</th> }
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var user in Model)
+                    {
+                        <tr>
+                            <td style="color:var(--text-3);font-size:.78rem;font-weight:600;">@user.Id.ToString("D3")</td>
+                            <td>
+                                <div class="d-flex align-items-center gap-3">
+                                    <div class="u-ava">@user.Name[0]</div>
+                                    <div>
+                                        <div style="font-weight:600;font-size:.9rem;">@user.Name</div>
+                                        <div style="font-size:.77rem;color:var(--text-3);">@user.Email</div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td><span class="pill p-neutral">@user.Age yrs</span></td>
+                            <td style="color:var(--text-3);font-size:.82rem;">@user.CreatedAt.ToString("MMM dd, yyyy")</td>
+                            @if (role == "Admin")
+                            {
+                                <td style="text-align:center;">
+                                    <div class="d-flex gap-2 justify-content-center">
+                                        <a asp-controller="User" asp-action="Edit" asp-route-id="@user.Id"
+                                           class="btn btn-warning btn-sm">
+                                            <i class="bi bi-pencil-fill"></i>
+                                        </a>
+                                        <form asp-controller="User" asp-action="Delete" asp-route-id="@user.Id"
+                                              method="post" class="d-inline"
+                                              onsubmit="return confirm('Delete @user.Name?')">
+                                            @Html.AntiForgeryToken()
+                                            <button type="submit" class="btn btn-danger btn-sm">
+                                                <i class="bi bi-trash-fill"></i>
+                                            </button>
+                                        </form>
+                                    </div>
+                                </td>
+                            }
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+        <div class="dcard-foot">Showing @Model.Count record(s)</div>
+    }
+</div>

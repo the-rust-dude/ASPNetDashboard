@@ -1,0 +1,176 @@
+@model List<ASPNetDashboard.Models.TransactionModel>
+@{
+    ViewData["Title"] = "Transactions";
+    var role       = ViewBag.Role as string ?? "Guest";
+    var search     = ViewBag.Search as string ?? "";
+    var type       = ViewBag.Type as string ?? "";
+    var category   = ViewBag.Category as string ?? "";
+    var fromDate   = ViewBag.FromDate as string ?? "";
+    var toDate     = ViewBag.ToDate as string ?? "";
+    var categories = ViewBag.Categories as List<string> ?? new();
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h4 class="fw-bold mb-1" style="letter-spacing:-.02em;">Transaction Ledger</h4>
+        <p class="mb-0" style="color:var(--text-3);font-size:.875rem;">@Model.Count transaction(s) displayed</p>
+    </div>
+    @if (role == "Admin")
+    {
+        <a asp-controller="Transaction" asp-action="Create" class="btn btn-primary">
+            <i class="bi bi-plus-circle-fill me-1"></i>New Transaction
+        </a>
+    }
+</div>
+
+<!-- Summary mini-cards -->
+<div class="row g-3 mb-4">
+    <div class="col-sm-4">
+        <div class="scard sc-teal" style="padding:18px 22px;">
+            <div class="d-flex align-items-center gap-3">
+                <div class="scard-icon" style="margin-bottom:0;width:40px;height:40px;font-size:1.1rem;flex-shrink:0;">
+                    <i class="bi bi-arrow-up-circle-fill"></i>
+                </div>
+                <div>
+                    <div class="scard-label">Credit</div>
+                    <div class="scard-value" style="font-size:1.25rem;">&#8369;@String.Format("{0:N0}",ViewBag.TotalCredit)</div>
+                </div>
+            </div>
+            <div class="blob b1"></div>
+        </div>
+    </div>
+    <div class="col-sm-4">
+        <div class="scard sc-rose" style="padding:18px 22px;">
+            <div class="d-flex align-items-center gap-3">
+                <div class="scard-icon" style="margin-bottom:0;width:40px;height:40px;font-size:1.1rem;flex-shrink:0;">
+                    <i class="bi bi-arrow-down-circle-fill"></i>
+                </div>
+                <div>
+                    <div class="scard-label">Debit</div>
+                    <div class="scard-value" style="font-size:1.25rem;">&#8369;@String.Format("{0:N0}",ViewBag.TotalDebit)</div>
+                </div>
+            </div>
+            <div class="blob b1"></div>
+        </div>
+    </div>
+    <div class="col-sm-4">
+        @{ decimal net = ViewBag.NetBalance; }
+        <div class="scard sc-violet" style="padding:18px 22px;">
+            <div class="d-flex align-items-center gap-3">
+                <div class="scard-icon" style="margin-bottom:0;width:40px;height:40px;font-size:1.1rem;flex-shrink:0;">
+                    <i class="bi bi-wallet2"></i>
+                </div>
+                <div>
+                    <div class="scard-label">Net Balance</div>
+                    <div class="scard-value" style="font-size:1.25rem;">&#8369;@String.Format("{0:N0}",net)</div>
+                </div>
+            </div>
+            <div class="blob b1"></div>
+        </div>
+    </div>
+</div>
+
+<!-- Filter bar -->
+<div class="fbar">
+    <form method="get" class="row g-2 align-items-end">
+        <div class="col-sm-6 col-md-3">
+            <label class="form-label">Search</label>
+            <div class="input-group">
+                <span class="input-group-text"><i class="bi bi-search"></i></span>
+                <input type="text" name="search" value="@search" class="form-control" placeholder="Description…" />
+            </div>
+        </div>
+        <div class="col-sm-4 col-md-2">
+            <label class="form-label">Type</label>
+            <select name="type" class="form-select">
+                <option value=""       selected="@(type == "")">All</option>
+                <option value="Credit" selected="@(type == "Credit")">Credit</option>
+                <option value="Debit"  selected="@(type == "Debit")">Debit</option>
+            </select>
+        </div>
+        <div class="col-sm-4 col-md-2">
+            <label class="form-label">Category</label>
+            <select name="category" class="form-select">
+                <option value="" selected="@(category == "")">All</option>
+                @foreach (var cat in categories)
+                {
+                    <option value="@cat" selected="@(category == cat)">@cat</option>
+                }
+            </select>
+        </div>
+        <div class="col-sm-4 col-md-2">
+            <label class="form-label">From</label>
+            <input type="date" name="fromDate" value="@fromDate" class="form-control" />
+        </div>
+        <div class="col-sm-4 col-md-2">
+            <label class="form-label">To</label>
+            <input type="date" name="toDate" value="@toDate" class="form-control" />
+        </div>
+        <div class="col-auto d-flex gap-2">
+            <button type="submit" class="btn btn-primary btn-sm">
+                <i class="bi bi-funnel-fill me-1"></i>Filter
+            </button>
+            <a asp-controller="Transaction" asp-action="Index" class="btn btn-outline-secondary btn-sm">
+                <i class="bi bi-x me-1"></i>Reset
+            </a>
+        </div>
+    </form>
+</div>
+
+<!-- Table -->
+<div class="dcard">
+    @if (!Model.Any())
+    {
+        <div class="empty-state">
+            <div class="empty-ico"><i class="bi bi-receipt"></i></div>
+            <p>No transactions match your filters.</p>
+        </div>
+    }
+    else
+    {
+        <div class="table-responsive">
+            <table class="table mb-0">
+                <thead>
+                    <tr>
+                        <th>Tx #</th>
+                        <th>Description</th>
+                        <th>Category</th>
+                        <th>Type</th>
+                        <th>Amount</th>
+                        <th>Date</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var tx in Model)
+                    {
+                        <tr>
+                            <td style="color:var(--text-3);font-size:.77rem;font-weight:600;">#@tx.Id.ToString("D4")</td>
+                            <td style="font-weight:500;font-size:.875rem;">@tx.Description</td>
+                            <td><span class="pill p-neutral">@tx.Category</span></td>
+                            <td>
+                                <span class="pill @(tx.Type=="Credit"?"p-credit":"p-debit")">
+                                    <i class="bi bi-arrow-@(tx.Type=="Credit"?"up":"down")"></i>@tx.Type
+                                </span>
+                            </td>
+                            <td style="font-weight:700;" class="@(tx.Type=="Credit"?"text-success":"text-danger")">
+                                @(tx.Type=="Credit"?"+":"-")&#8369;@String.Format("{0:N2}",tx.Amount)
+                            </td>
+                            <td style="color:var(--text-3);font-size:.8rem;">@tx.Date.ToString("MMM dd, yyyy")</td>
+                        </tr>
+                    }
+                </tbody>
+                <tfoot>
+                    <tr>
+                        <td colspan="4" style="text-align:right;color:var(--text-3);font-weight:600;">Filtered totals</td>
+                        <td>
+                            <span class="d-block text-success fw-bold" style="font-size:.82rem;">+&#8369;@String.Format("{0:N2}",ViewBag.FilteredCredit)</span>
+                            <span class="d-block text-danger fw-bold" style="font-size:.82rem;">-&#8369;@String.Format("{0:N2}",ViewBag.FilteredDebit)</span>
+                        </td>
+                        <td></td>
+                    </tr>
+                </tfoot>
+            </table>
+        </div>
+        <div class="dcard-foot">Showing @Model.Count record(s)</div>
+    }
+</div>

@@ -1,0 +1,95 @@
+@model ASPNetDashboard.Models.TransactionModel
+@{ ViewData["Title"] = "New Transaction"; }
+
+<div class="row justify-content-center">
+<div class="col-lg-7">
+
+<nav aria-label="breadcrumb" class="mb-3">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a asp-controller="Transaction" asp-action="Index">Transactions</a></li>
+        <li class="breadcrumb-item active">New Entry</li>
+    </ol>
+</nav>
+
+<div class="form-wrap">
+    <div class="fw-head">
+        <div class="fw-icon fw-icon-grad"><i class="bi bi-plus-circle-fill"></i></div>
+        <div>
+            <div class="fw-title">New Transaction Entry</div>
+            <div class="fw-sub">All fields marked with <span style="color:var(--red)">*</span> are required.</div>
+        </div>
+    </div>
+
+    <form asp-controller="Transaction" asp-action="Create" method="post" novalidate>
+        @Html.AntiForgeryToken()
+        <div asp-validation-summary="ModelOnly" class="alert alert-danger py-2 small mb-4"></div>
+
+        <div class="mb-4">
+            <label asp-for="Description" class="form-label">Description <span style="color:var(--red)">*</span></label>
+            <div class="input-group">
+                <span class="input-group-text"><i class="bi bi-card-text"></i></span>
+                <input asp-for="Description" class="form-control" placeholder="e.g. Client Payment Received" />
+            </div>
+            <span asp-validation-for="Description" class="invalid-feedback d-block"></span>
+        </div>
+
+        <div class="mb-4">
+            <label asp-for="Amount" class="form-label">Amount (&#8369;) <span style="color:var(--red)">*</span></label>
+            <div class="input-group" style="max-width:280px;">
+                <span class="input-group-text" style="font-weight:700;">&#8369;</span>
+                <input asp-for="Amount" class="form-control" type="number" step="0.01" min="0.01" placeholder="0.00" />
+            </div>
+            <span asp-validation-for="Amount" class="invalid-feedback d-block"></span>
+        </div>
+
+        <!-- Type toggle -->
+        <div class="mb-4">
+            <label class="form-label">Transaction Type <span style="color:var(--red)">*</span></label>
+            <div class="d-flex gap-3 flex-wrap">
+                <label class="d-flex align-items-center gap-2 px-4 py-3 rounded-4 cursor-pointer"
+                       style="border:1.5px solid rgba(16,185,129,.25);background:rgba(16,185,129,.05);cursor:pointer;">
+                    <input class="form-check-input m-0" type="radio" asp-for="Type" value="Credit" id="tCredit" />
+                    <span style="color:#047857;font-weight:600;font-size:.9rem;">
+                        <i class="bi bi-arrow-up-circle-fill me-1"></i>Credit — Money In
+                    </span>
+                </label>
+                <label class="d-flex align-items-center gap-2 px-4 py-3 rounded-4"
+                       style="border:1.5px solid rgba(244,63,94,.2);background:rgba(244,63,94,.04);cursor:pointer;">
+                    <input class="form-check-input m-0" type="radio" asp-for="Type" value="Debit" id="tDebit" />
+                    <span style="color:#be123c;font-weight:600;font-size:.9rem;">
+                        <i class="bi bi-arrow-down-circle-fill me-1"></i>Debit — Money Out
+                    </span>
+                </label>
+            </div>
+            <span asp-validation-for="Type" class="invalid-feedback d-block"></span>
+        </div>
+
+        <div class="mb-5">
+            <label asp-for="Category" class="form-label">Category <span style="color:var(--red)">*</span></label>
+            <select asp-for="Category" class="form-select" style="max-width:280px;">
+                <option value="">— Select Category —</option>
+                <option value="Income">Income</option>
+                <option value="Equipment">Equipment</option>
+                <option value="Supplies">Supplies</option>
+                <option value="Software">Software</option>
+                <option value="Utilities">Utilities</option>
+                <option value="Payroll">Payroll</option>
+                <option value="Marketing">Marketing</option>
+                <option value="Other">Other</option>
+            </select>
+            <span asp-validation-for="Category" class="invalid-feedback d-block"></span>
+        </div>
+
+        <div class="d-flex gap-3">
+            <button type="submit" class="btn btn-primary">
+                <i class="bi bi-check-circle-fill me-1"></i>Save Transaction
+            </button>
+            <a asp-controller="Transaction" asp-action="Index" class="btn btn-outline-secondary">
+                <i class="bi bi-arrow-left me-1"></i>Cancel
+            </a>
+        </div>
+    </form>
+</div>
+
+</div>
+</div>

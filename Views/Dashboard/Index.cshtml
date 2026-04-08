@@ -1,0 +1,166 @@
+@{
+    ViewData["Title"] = "Dashboard";
+    var role = ViewBag.Role as string ?? "Guest";
+}
+
+<!-- Page header -->
+<div class="d-flex justify-content-between align-items-start mb-4">
+    <div>
+        <h4 class="fw-bold mb-1" style="letter-spacing:-.02em;">
+            Good to see you
+            <span style="background:linear-gradient(135deg,#6c63ff,#ec4899);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;">
+                @role
+            </span>
+        </h4>
+        <p class="mb-0" style="color:var(--text-3);font-size:.875rem;">
+            @if (role == "Admin")
+            {
+                <span><i class="bi bi-shield-fill me-1" style="color:var(--g-a);"></i>Full admin access &mdash; you can create, edit, and delete records.</span>
+            }
+            else
+            {
+                <span><i class="bi bi-eye me-1" style="color:var(--amber);"></i>Read-only mode &mdash; switch to Admin for full access.</span>
+            }
+        </p>
+    </div>
+    @if (role == "Admin")
+    {
+        <div class="d-flex gap-2 flex-shrink-0">
+            <a asp-controller="User" asp-action="Create" class="btn btn-primary btn-sm">
+                <i class="bi bi-person-plus-fill me-1"></i>Add User
+            </a>
+            <a asp-controller="Transaction" asp-action="Create" class="btn btn-outline-primary btn-sm">
+                <i class="bi bi-plus-circle me-1"></i>New Transaction
+            </a>
+        </div>
+    }
+</div>
+
+<!-- Stat cards -->
+<div class="row g-4 mb-4">
+    <div class="col-sm-6 col-xl-3">
+        <div class="scard sc-violet">
+            <div class="scard-icon"><i class="bi bi-people-fill"></i></div>
+            <div class="scard-label">Registered Users</div>
+            <div class="scard-value">@ViewBag.UserCount</div>
+            <div class="scard-sub">Total accounts on record</div>
+            <div class="blob b1"></div><div class="blob b2"></div>
+        </div>
+    </div>
+    <div class="col-sm-6 col-xl-3">
+        <div class="scard sc-teal">
+            <div class="scard-icon"><i class="bi bi-arrow-up-circle-fill"></i></div>
+            <div class="scard-label">Total Credit</div>
+            <div class="scard-value" style="font-size:1.5rem;">&#8369;@String.Format("{0:N0}", ViewBag.TotalCredit)</div>
+            <div class="scard-sub">Incoming funds</div>
+            <div class="blob b1"></div><div class="blob b2"></div>
+        </div>
+    </div>
+    <div class="col-sm-6 col-xl-3">
+        <div class="scard sc-rose">
+            <div class="scard-icon"><i class="bi bi-arrow-down-circle-fill"></i></div>
+            <div class="scard-label">Total Debit</div>
+            <div class="scard-value" style="font-size:1.5rem;">&#8369;@String.Format("{0:N0}", ViewBag.TotalDebit)</div>
+            <div class="scard-sub">Outgoing funds</div>
+            <div class="blob b1"></div><div class="blob b2"></div>
+        </div>
+    </div>
+    <div class="col-sm-6 col-xl-3">
+        @{ decimal net = ViewBag.NetBalance; }
+        <div class="scard sc-amber">
+            <div class="scard-icon"><i class="bi bi-wallet2"></i></div>
+            <div class="scard-label">Net Balance</div>
+            <div class="scard-value" style="font-size:1.5rem;">&#8369;@String.Format("{0:N0}", net)</div>
+            <div class="scard-sub">@(net >= 0 ? "Positive balance" : "Negative balance")</div>
+            <div class="blob b1"></div><div class="blob b2"></div>
+        </div>
+    </div>
+</div>
+
+<!-- Recent data -->
+<div class="row g-4">
+    <!-- Recent Users -->
+    <div class="col-lg-6">
+        <div class="dcard">
+            <div class="dcard-head">
+                <div class="dcard-title">
+                    <div class="dcard-dot"></div>
+                    Recent Users
+                </div>
+                <a asp-controller="User" asp-action="Index" class="btn btn-outline-primary btn-sm">
+                    View all <i class="bi bi-arrow-right ms-1"></i>
+                </a>
+            </div>
+            <table class="table mb-0">
+                <thead>
+                    <tr>
+                        <th>User</th>
+                        <th>Age</th>
+                        <th>Joined</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var u in (List<ASPNetDashboard.Models.UserModel>)ViewBag.RecentUsers)
+                    {
+                        <tr>
+                            <td>
+                                <div class="d-flex align-items-center gap-2">
+                                    <div class="u-ava">@u.Name[0]</div>
+                                    <div>
+                                        <div style="font-weight:600;font-size:.875rem;">@u.Name</div>
+                                        <div style="font-size:.75rem;color:var(--text-3);">@u.Email</div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td><span class="pill p-neutral">@u.Age yrs</span></td>
+                            <td style="color:var(--text-3);font-size:.8rem;">@u.CreatedAt.ToString("MMM dd")</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Recent Transactions -->
+    <div class="col-lg-6">
+        <div class="dcard">
+            <div class="dcard-head">
+                <div class="dcard-title">
+                    <div class="dcard-dot"></div>
+                    Recent Transactions
+                </div>
+                <a asp-controller="Transaction" asp-action="Index" class="btn btn-outline-primary btn-sm">
+                    View all <i class="bi bi-arrow-right ms-1"></i>
+                </a>
+            </div>
+            <table class="table mb-0">
+                <thead>
+                    <tr>
+                        <th>Description</th>
+                        <th>Type</th>
+                        <th>Amount</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var t in (List<ASPNetDashboard.Models.TransactionModel>)ViewBag.RecentTx)
+                    {
+                        <tr>
+                            <td>
+                                <div style="font-weight:500;font-size:.875rem;max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">@t.Description</div>
+                                <div style="font-size:.74rem;color:var(--text-3);">#@t.Id.ToString("D4") &middot; @t.Date.ToString("MMM dd")</div>
+                            </td>
+                            <td>
+                                <span class="pill @(t.Type=="Credit" ? "p-credit" : "p-debit")">
+                                    <i class="bi bi-arrow-@(t.Type=="Credit"?"up":"down")"></i>@t.Type
+                                </span>
+                            </td>
+                            <td style="font-weight:700;font-size:.9rem;" class="@(t.Type=="Credit"?"text-success":"text-danger")">
+                                @(t.Type=="Credit"?"+":"-")&#8369;@String.Format("{0:N2}",t.Amount)
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>

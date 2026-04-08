@@ -1,0 +1,164 @@
+Create a functional ASP.NET Core MVC Web Application that demonstrates:
+
+    Data Entry with Validation
+    Role-based Dashboard (Guest & Admin)
+    Transaction Management
+
+Project Requirements
+1. Data Entry Module (With Validation)
+
+Create a form that accepts user input.
+
+ 
+
+Required Fields (example: User Registration or Product Entry)
+
+    Name (Required)
+    Email (Email Validation)
+    Age (Range: 18–60)
+    Password
+    Confirm Password (Compare Validation)
+
+ 
+
+Validation Requirements
+
+Students must implement:
+
+    Required
+    StringLength
+    Range
+    EmailAddress
+    Compare
+    Custom Error Messages
+
+👉 Must use Data Annotations
+
+ 
+
+Expected Behavior
+
+    Invalid input → Display error messages
+
+    Valid input → Save data (temporary list or database)
+
+2. Dashboard (Sidebar Navigation)
+
+Create a left sidebar navigation UI with two roles:
+
+ 
+
+Guest Dashboard
+
+    View Data (Read-only)
+    Cannot edit/delete records
+
+ 
+
+Admin Dashboard
+
+    Full access:
+        Add Data
+        Edit Data
+        Delete Data
+        View Transactions
+
+ 
+
+👉 You may simulate roles using:
+
+    Dropdown (Guest/Admin), OR
+    Hardcoded role switching
+
+3. Transactions Module
+
+Create a simple transaction system.
+
+ 
+
+Example (students may choose):
+
+    Product Orders
+    Student Enrollment
+    Booking System
+
+Minimum Features
+
+    Add Transaction
+    View Transaction List
+
+ 
+
+Display Fields
+
+    Transaction ID
+    Date
+    Description
+    Amount
+
+4. Required MVC Structure
+
+Students must properly use:
+
+ 
+
+Model
+
+    Contains properties + Data Annotations
+
+View
+
+    Forms with validation messages
+    Dashboard UI
+
+ 
+
+Controller
+
+Handles:
+
+    Form submission
+    Validation (ModelState.IsValid)
+    Data processing
+
+5. Validation Implementation
+
+Must include BOTH:
+
+    Client-side validation (Tag Helpers)
+    Server-side validation (ModelState)
+
+6. UI & Functionality Requirements (REQUIRED)
+
+Styling (REQUIRED)
+
+    Use Bootstrap for layout and design
+    Responsive and clean interface
+    Proper alignment and spacing
+
+ 
+
+Search & Filter (REQUIRED)
+
+    Implement search functionality for:
+        Data records OR
+        Transactions
+    Implement at least one filter option, such as:
+        By date
+        By name
+        By category/type
+
+General UI Requirements
+
+    Sidebar (left navigation)
+    Clean form layout
+    Validation messages displayed properly
+    Separate pages for:
+        Dashboard
+        Data Entry
+        Transactions
+
+7. Bonus (Optional)
+
+    Use database (SQL Server / SQLite)
+    Add login system
