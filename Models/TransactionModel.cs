@@ -26,6 +26,12 @@ namespace ASPNetDashboard.Models
         [StringLength(50, ErrorMessage = "Category cannot exceed 50 characters.")]
         public string Category { get; set; } = string.Empty;
 
-        public DateTime Date { get; set; } = DateTime.Now;
+        [StringLength(30)]
+        public string Status { get; set; } = "Completed"; // Completed | Pending | Failed
+
+        [StringLength(50)]
+        public string Reference { get; set; } = string.Empty;
+
+        public DateTime Date { get; set; } = DateTime.UtcNow;
     }
 }

@@ -1,35 +1,47 @@
 using ASPNetDashboard.Data;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
 namespace ASPNetDashboard.Controllers
 {
+    [Authorize]
     public class DashboardController : Controller
     {
-        public IActionResult Index()
-        {
-            var role = HttpContext.Session.GetString("Role") ?? "Guest";
-            ViewBag.Role         = role;
-            ViewBag.UserCount    = AppDataStore.Users.Count;
-            ViewBag.TxCount      = AppDataStore.Transactions.Count;
-            ViewBag.TotalCredit  = AppDataStore.TotalCredit;
-            ViewBag.TotalDebit   = AppDataStore.TotalDebit;
-            ViewBag.NetBalance   = AppDataStore.NetBalance;
-            ViewBag.RecentUsers  = AppDataStore.Users
-                                       .OrderByDescending(u => u.CreatedAt)
-                                       .Take(5).ToList();
-            ViewBag.RecentTx     = AppDataStore.Transactions
-                                       .OrderByDescending(t => t.Date)
-                                       .Take(5).ToList();
-            return View();
-        }
+        private readonly AppDbContext _db;
 
-        [HttpPost]
-        public IActionResult SetRole(string role)
+        public DashboardController(AppDbContext db) => _db = db;
+
+        public async Task<IActionResult> Index()
         {
-            var safeRole = role == "Admin" ? "Admin" : "Guest";
-            HttpContext.Session.SetString("Role", safeRole);
-            TempData["Info"] = $"You are now browsing as {safeRole}.";
-            return RedirectToAction("Index");
+            var users        = await _db.Users.ToListAsync();
+            var transactions = await _db.Transactions.ToListAsync();
+
+            ViewBag.UserCount   = users.Count;
+            ViewBag.TxCount     = transactions.Count;
+            ViewBag.TotalCredit = transactions.Where(t => t.Type == "Credit").Sum(t => t.Amount);
+            ViewBag.TotalDebit  = transactions.Where(t => t.Type == "Debit").Sum(t => t.Amount);
+            ViewBag.NetBalance  = ViewBag.TotalCredit - ViewBag.TotalDebit;
+            ViewBag.ActiveUsers = users.Count(u => u.Status == "Active");
+
+            ViewBag.RecentUsers = users
+                .OrderByDescending(u => u.CreatedAt)
+                .Take(5).ToList();
+
+            ViewBag.RecentTx = transactions
+                .OrderByDescending(t => t.Date)
+                .Take(5).ToList();
+
+            // Activity stats for mini chart (last 7 days credits)
+            ViewBag.WeeklyCredits = Enumerable.Range(0, 7)
+                .Select(i => transactions
+                    .Where(t => t.Type == "Credit" &&
+                                t.Date.Date == DateTime.UtcNow.Date.AddDays(-i))
+                    .Sum(t => t.Amount))
+                .Reverse()
+                .ToList();
+
+            return View();
         }
     }
 }

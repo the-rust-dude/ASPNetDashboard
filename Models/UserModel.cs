@@ -1,7 +1,11 @@
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace ASPNetDashboard.Models
 {
+    /// <summary>
+    /// Represents a managed user record in the system (not an auth user).
+    /// </summary>
     public class UserModel
     {
         public int Id { get; set; }
@@ -26,14 +30,26 @@ namespace ASPNetDashboard.Models
         [StringLength(100, MinimumLength = 6,
             ErrorMessage = "Password must be at least 6 characters long.")]
         [DataType(DataType.Password)]
+        [NotMapped]
         public string Password { get; set; } = string.Empty;
 
         [Required(ErrorMessage = "Please confirm your password.")]
         [DataType(DataType.Password)]
         [Compare("Password", ErrorMessage = "Passwords do not match. Please try again.")]
         [Display(Name = "Confirm Password")]
+        [NotMapped]
         public string ConfirmPassword { get; set; } = string.Empty;
 
-        public DateTime CreatedAt { get; set; } = DateTime.Now;
+        public string PasswordHash { get; set; } = string.Empty;
+
+        [Display(Name = "Department")]
+        [StringLength(80)]
+        public string Department { get; set; } = string.Empty;
+
+        [Display(Name = "Status")]
+        [StringLength(20)]
+        public string Status { get; set; } = "Active"; // Active | Inactive | Suspended
+
+        public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     }
 }

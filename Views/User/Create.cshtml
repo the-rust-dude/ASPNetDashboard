@@ -1,102 +1,75 @@
 @model ASPNetDashboard.Models.UserModel
 @{ ViewData["Title"] = "Add User"; }
 
-<div class="row justify-content-center">
-<div class="col-lg-7">
-
-<nav aria-label="breadcrumb" class="mb-3">
-    <ol class="breadcrumb">
-        <li class="breadcrumb-item"><a asp-controller="User" asp-action="Index">Users</a></li>
-        <li class="breadcrumb-item active">Add New User</li>
-    </ol>
-</nav>
-
-<div class="form-wrap">
-    <div class="fw-head">
-        <div class="fw-icon fw-icon-grad"><i class="bi bi-person-plus-fill"></i></div>
-        <div>
-            <div class="fw-title">Register New User</div>
-            <div class="fw-sub">All fields marked with <span style="color:var(--red)">*</span> are required.</div>
-        </div>
+<div style="max-width:680px;">
+    <div class="mb-3">
+        <a asp-action="Index" class="btn btn-outline-secondary btn-sm">
+            <i class="bi bi-arrow-left me-1"></i>Back to Users
+        </a>
     </div>
 
-    <form asp-controller="User" asp-action="Create" method="post" novalidate>
-        @Html.AntiForgeryToken()
-        <div asp-validation-summary="ModelOnly" class="alert alert-danger py-2 small mb-4"></div>
-
-        <div class="mb-4">
-            <label asp-for="Name" class="form-label">Full Name <span style="color:var(--red)">*</span></label>
-            <div class="input-group">
-                <span class="input-group-text"><i class="bi bi-person"></i></span>
-                <input asp-for="Name" class="form-control" placeholder="e.g. Juan dela Cruz" />
+    <div class="form-wrap">
+        <div class="form-header d-flex align-items-center gap-3">
+            <div class="form-h-icon"><i class="bi bi-person-plus-fill"></i></div>
+            <div>
+                <div class="form-h-title">Add New User</div>
+                <div class="form-h-sub">All fields required. Password hashed with PBKDF2-SHA256.</div>
             </div>
-            <span asp-validation-for="Name" class="invalid-feedback d-block"></span>
         </div>
 
-        <div class="mb-4">
-            <label asp-for="Email" class="form-label">Email Address <span style="color:var(--red)">*</span></label>
-            <div class="input-group">
-                <span class="input-group-text"><i class="bi bi-envelope"></i></span>
-                <input asp-for="Email" class="form-control" type="email" placeholder="e.g. juan@example.com" />
+        <form asp-action="Create" method="post" novalidate>
+            @Html.AntiForgeryToken()
+            <div class="row g-3">
+                <div class="col-md-6">
+                    <label asp-for="Name" class="form-label"></label>
+                    <input asp-for="Name" class="form-control" placeholder="Full name" />
+                    <span asp-validation-for="Name" class="invalid-feedback d-block"></span>
+                </div>
+                <div class="col-md-6">
+                    <label asp-for="Email" class="form-label"></label>
+                    <input asp-for="Email" type="email" class="form-control" placeholder="user@example.com" />
+                    <span asp-validation-for="Email" class="invalid-feedback d-block"></span>
+                </div>
+                <div class="col-md-4">
+                    <label asp-for="Age" class="form-label"></label>
+                    <input asp-for="Age" type="number" class="form-control" placeholder="18–60" />
+                    <span asp-validation-for="Age" class="invalid-feedback d-block"></span>
+                </div>
+                <div class="col-md-4">
+                    <label asp-for="Department" class="form-label"></label>
+                    <input asp-for="Department" class="form-control" placeholder="e.g. Engineering" />
+                    <span asp-validation-for="Department" class="invalid-feedback d-block"></span>
+                </div>
+                <div class="col-md-4">
+                    <label asp-for="Status" class="form-label"></label>
+                    <select asp-for="Status" class="form-select">
+                        <option value="Active">Active</option>
+                        <option value="Inactive">Inactive</option>
+                        <option value="Suspended">Suspended</option>
+                    </select>
+                </div>
+                <div class="col-md-6">
+                    <label asp-for="Password" class="form-label"></label>
+                    <input asp-for="Password" type="password" class="form-control" placeholder="Min 6 characters" />
+                    <span asp-validation-for="Password" class="invalid-feedback d-block"></span>
+                </div>
+                <div class="col-md-6">
+                    <label asp-for="ConfirmPassword" class="form-label"></label>
+                    <input asp-for="ConfirmPassword" type="password" class="form-control" placeholder="Re-enter password" />
+                    <span asp-validation-for="ConfirmPassword" class="invalid-feedback d-block"></span>
+                </div>
             </div>
-            <span asp-validation-for="Email" class="invalid-feedback d-block"></span>
-        </div>
 
-        <div class="mb-4">
-            <label asp-for="Age" class="form-label">Age <span style="color:var(--red)">*</span></label>
-            <div class="input-group" style="max-width:200px;">
-                <span class="input-group-text"><i class="bi bi-calendar-event"></i></span>
-                <input asp-for="Age" class="form-control" type="number" min="18" max="60" placeholder="18 – 60" />
-            </div>
-            <span asp-validation-for="Age" class="invalid-feedback d-block"></span>
-            <div style="font-size:.76rem;color:var(--text-3);margin-top:5px;">Must be between 18 and 60 years old.</div>
-        </div>
-
-        <div class="mb-4">
-            <label asp-for="Password" class="form-label">Password <span style="color:var(--red)">*</span></label>
-            <div class="input-group">
-                <span class="input-group-text"><i class="bi bi-lock"></i></span>
-                <input asp-for="Password" class="form-control" type="password" id="pwdA" placeholder="Minimum 6 characters" />
-                <button type="button" class="btn-reveal" onclick="togglePwd('pwdA',this)">
-                    <i class="bi bi-eye"></i>
+            <div class="d-flex gap-2 mt-4 pt-3" style="border-top:1px solid var(--border);">
+                <button type="submit" class="btn btn-primary">
+                    <i class="bi bi-check-lg me-1"></i>Create User
                 </button>
+                <a asp-action="Index" class="btn btn-outline-secondary">Cancel</a>
             </div>
-            <span asp-validation-for="Password" class="invalid-feedback d-block"></span>
-        </div>
-
-        <div class="mb-5">
-            <label asp-for="ConfirmPassword" class="form-label">Confirm Password <span style="color:var(--red)">*</span></label>
-            <div class="input-group">
-                <span class="input-group-text"><i class="bi bi-lock-fill"></i></span>
-                <input asp-for="ConfirmPassword" class="form-control" type="password" id="pwdB" placeholder="Re-enter password" />
-                <button type="button" class="btn-reveal" onclick="togglePwd('pwdB',this)">
-                    <i class="bi bi-eye"></i>
-                </button>
-            </div>
-            <span asp-validation-for="ConfirmPassword" class="invalid-feedback d-block"></span>
-        </div>
-
-        <div class="d-flex gap-3">
-            <button type="submit" class="btn btn-primary">
-                <i class="bi bi-check-circle-fill me-1"></i>Save User
-            </button>
-            <a asp-controller="User" asp-action="Index" class="btn btn-outline-secondary">
-                <i class="bi bi-arrow-left me-1"></i>Cancel
-            </a>
-        </div>
-    </form>
-</div>
-
-</div>
+        </form>
+    </div>
 </div>
 
 @section Scripts {
-<script>
-function togglePwd(id, btn) {
-    const f = document.getElementById(id);
-    const i = btn.querySelector('i');
-    f.type = f.type === 'password' ? 'text' : 'password';
-    i.className = f.type === 'password' ? 'bi bi-eye' : 'bi bi-eye-slash';
-}
-</script>
+    <partial name="_ValidationScriptsPartial" />
 }

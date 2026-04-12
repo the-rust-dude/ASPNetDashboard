@@ -1,145 +1,132 @@
 using ASPNetDashboard.Data;
 using ASPNetDashboard.Models;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
 namespace ASPNetDashboard.Controllers
 {
+    [Authorize]
     public class UserController : Controller
     {
-        private string CurrentRole =>
-            HttpContext.Session.GetString("Role") ?? "Guest";
+        private readonly AppDbContext _db;
+        public UserController(AppDbContext db) => _db = db;
 
-        // ── Index / List ─────────────────────────────────────────────────
-
-        public IActionResult Index(string? search, string? sortBy)
+        // ── Index / Search ─────────────────────────────────────────────────
+        public async Task<IActionResult> Index(string? search, string? sortBy, string? status)
         {
-            ViewBag.Role   = CurrentRole;
             ViewBag.Search = search;
             ViewBag.SortBy = sortBy;
+            ViewBag.Status = status;
 
-            var users = AppDataStore.Users.AsQueryable();
+            var q = _db.Users.AsQueryable();
 
-            // Search filter
             if (!string.IsNullOrWhiteSpace(search))
-            {
-                users = users.Where(u =>
-                    u.Name.Contains(search, StringComparison.OrdinalIgnoreCase) ||
-                    u.Email.Contains(search, StringComparison.OrdinalIgnoreCase));
-            }
+                q = q.Where(u => u.Name.Contains(search) ||
+                                 u.Email.Contains(search) ||
+                                 u.Department.Contains(search));
 
-            // Sort
-            users = sortBy switch
+            if (!string.IsNullOrWhiteSpace(status))
+                q = q.Where(u => u.Status == status);
+
+            q = sortBy switch
             {
-                "name"  => users.OrderBy(u => u.Name),
-                "age"   => users.OrderBy(u => u.Age),
-                "date"  => users.OrderByDescending(u => u.CreatedAt),
-                _       => users.OrderBy(u => u.Id)
+                "name"   => q.OrderBy(u => u.Name),
+                "age"    => q.OrderBy(u => u.Age),
+                "date"   => q.OrderByDescending(u => u.CreatedAt),
+                "status" => q.OrderBy(u => u.Status),
+                _        => q.OrderByDescending(u => u.CreatedAt)
             };
 
-            return View(users.ToList());
+            return View(await q.ToListAsync());
         }
 
-        // ── Create ───────────────────────────────────────────────────────
+        // ── Create ─────────────────────────────────────────────────────────
+        [Authorize(Roles = "Admin")]
+        public IActionResult Create() => View(new UserModel());
 
-        public IActionResult Create()
+        [HttpPost, ValidateAntiForgeryToken]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> Create(UserModel model)
         {
-            if (CurrentRole != "Admin")
-                return RedirectToAction("Index");
-            ViewBag.Role = CurrentRole;
-            return View(new UserModel());
-        }
+            ModelState.Remove("PasswordHash");
 
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public IActionResult Create(UserModel model)
-        {
-            if (CurrentRole != "Admin")
-                return RedirectToAction("Index");
+            if (!ModelState.IsValid) return View(model);
 
-            ViewBag.Role = CurrentRole;
-
-            if (ModelState.IsValid)
+            if (await _db.Users.AnyAsync(u =>
+                    u.Email.ToLower() == model.Email.ToLower()))
             {
-                // Check duplicate email
-                if (AppDataStore.Users.Any(u =>
-                    u.Email.Equals(model.Email, StringComparison.OrdinalIgnoreCase)))
-                {
-                    ModelState.AddModelError("Email",
-                        "This email address is already registered.");
-                    return View(model);
-                }
-
-                AppDataStore.AddUser(model);
-                TempData["Success"] = $"User '{model.Name}' was added successfully!";
-                return RedirectToAction("Index");
+                ModelState.AddModelError("Email",
+                    "This email address is already registered.");
+                return View(model);
             }
 
-            return View(model);
+            model.PasswordHash = PasswordHelper.HashPassword(model.Password);
+            model.CreatedAt    = DateTime.UtcNow;
+
+            _db.Users.Add(model);
+            await _db.SaveChangesAsync();
+
+            TempData["Success"] = $"User '{model.Name}' added successfully.";
+            return RedirectToAction(nameof(Index));
         }
 
-        // ── Edit ─────────────────────────────────────────────────────────
-
-        public IActionResult Edit(int id)
+        // ── Edit ───────────────────────────────────────────────────────────
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> Edit(int id)
         {
-            if (CurrentRole != "Admin")
-                return RedirectToAction("Index");
-
-            ViewBag.Role = CurrentRole;
-            var user = AppDataStore.GetUser(id);
+            var user = await _db.Users.FindAsync(id);
             if (user is null) return NotFound();
             return View(user);
         }
 
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public IActionResult Edit(UserModel model)
+        [HttpPost, ValidateAntiForgeryToken]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> Edit(UserModel model)
         {
-            if (CurrentRole != "Admin")
-                return RedirectToAction("Index");
-
-            ViewBag.Role = CurrentRole;
-
-            // Password not re-validated on edit
             ModelState.Remove("Password");
             ModelState.Remove("ConfirmPassword");
+            ModelState.Remove("PasswordHash");
 
-            if (ModelState.IsValid)
-            {
-                // Duplicate email check (excluding self)
-                if (AppDataStore.Users.Any(u =>
-                    u.Email.Equals(model.Email, StringComparison.OrdinalIgnoreCase) &&
+            if (!ModelState.IsValid) return View(model);
+
+            var existing = await _db.Users.FindAsync(model.Id);
+            if (existing is null) return NotFound();
+
+            if (await _db.Users.AnyAsync(u =>
+                    u.Email.ToLower() == model.Email.ToLower() &&
                     u.Id != model.Id))
-                {
-                    ModelState.AddModelError("Email",
-                        "This email is already used by another user.");
-                    return View(model);
-                }
-
-                AppDataStore.UpdateUser(model);
-                TempData["Success"] = $"User '{model.Name}' was updated successfully!";
-                return RedirectToAction("Index");
+            {
+                ModelState.AddModelError("Email",
+                    "This email is already used by another user.");
+                return View(model);
             }
 
-            return View(model);
+            existing.Name       = model.Name;
+            existing.Email      = model.Email;
+            existing.Age        = model.Age;
+            existing.Department = model.Department;
+            existing.Status     = model.Status;
+
+            await _db.SaveChangesAsync();
+
+            TempData["Success"] = $"User '{model.Name}' updated successfully.";
+            return RedirectToAction(nameof(Index));
         }
 
-        // ── Delete ───────────────────────────────────────────────────────
-
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public IActionResult Delete(int id)
+        // ── Delete ─────────────────────────────────────────────────────────
+        [HttpPost, ValidateAntiForgeryToken]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> Delete(int id)
         {
-            if (CurrentRole != "Admin")
-                return RedirectToAction("Index");
-
-            var user = AppDataStore.GetUser(id);
+            var user = await _db.Users.FindAsync(id);
             if (user is not null)
             {
-                AppDataStore.DeleteUser(id);
-                TempData["Success"] = $"User '{user.Name}' was deleted.";
+                _db.Users.Remove(user);
+                await _db.SaveChangesAsync();
+                TempData["Success"] = $"User '{user.Name}' has been removed.";
             }
-
-            return RedirectToAction("Index");
+            return RedirectToAction(nameof(Index));
         }
     }
 }

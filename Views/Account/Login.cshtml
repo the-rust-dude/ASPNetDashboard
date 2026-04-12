@@ -1,0 +1,376 @@
+@model ASPNetDashboard.Models.LoginViewModel
+@{
+    Layout = null;
+    ViewData["Title"] = "Sign In";
+}
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Sign In — Nexus</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" />
+    <style>
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+        :root {
+            --bg:       #080c18;
+            --surface:  rgba(255,255,255,0.04);
+            --border:   rgba(255,255,255,0.08);
+            --border-h: rgba(255,255,255,0.14);
+            --blue:     #3b82f6;
+            --blue-g:   rgba(59,130,246,0.18);
+            --violet:   #8b5cf6;
+            --text:     #f1f5f9;
+            --text-2:   #94a3b8;
+            --text-3:   #475569;
+            --red:      #ef4444;
+            --r:        14px;
+            --pill:     999px;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--bg);
+            background-image:
+                radial-gradient(ellipse 70% 60% at 15% 5%,  rgba(59,130,246,.16)  0%, transparent 65%),
+                radial-gradient(ellipse 55% 50% at 85% 90%,  rgba(139,92,246,.14)  0%, transparent 60%),
+                radial-gradient(ellipse 50% 40% at 55% 50%,  rgba(16,185,129,.06)  0%, transparent 70%);
+            background-attachment: fixed;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--text);
+        }
+
+        /* ── Grid overlay ── */
+        body::before {
+            content: '';
+            position: fixed; inset: 0;
+            background-image: linear-gradient(rgba(255,255,255,.02) 1px, transparent 1px),
+                              linear-gradient(90deg, rgba(255,255,255,.02) 1px, transparent 1px);
+            background-size: 48px 48px;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .login-wrap {
+            position: relative; z-index: 1;
+            width: 100%; max-width: 440px;
+            padding: 20px;
+        }
+
+        /* ── Brand ── */
+        .brand {
+            display: flex; align-items: center; gap: 12px;
+            margin-bottom: 32px;
+            justify-content: center;
+        }
+        .brand-logo {
+            width: 44px; height: 44px;
+            background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+            border-radius: 12px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 1.2rem; color: #fff;
+            box-shadow: 0 0 30px rgba(59,130,246,.4);
+        }
+        .brand-name {
+            font-size: 1.4rem; font-weight: 800;
+            color: var(--text); letter-spacing: -0.03em;
+        }
+        .brand-name span {
+            background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        /* ── Card ── */
+        .login-card {
+            background: rgba(255,255,255,0.035);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            padding: 36px;
+            backdrop-filter: blur(24px);
+            box-shadow: 0 24px 64px rgba(0,0,0,.45),
+                        inset 0 1px 0 rgba(255,255,255,.06);
+        }
+
+        .card-head {
+            margin-bottom: 28px;
+        }
+        .card-title {
+            font-size: 1.35rem; font-weight: 700;
+            color: var(--text); letter-spacing: -0.025em;
+            margin-bottom: 5px;
+        }
+        .card-sub {
+            font-size: 0.83rem; color: var(--text-2);
+        }
+
+        /* ── Form ── */
+        .form-group { margin-bottom: 18px; }
+        .form-label {
+            display: block;
+            font-size: 0.72rem; font-weight: 600;
+            color: var(--text-2);
+            text-transform: uppercase; letter-spacing: .06em;
+            margin-bottom: 7px;
+        }
+        .input-wrap { position: relative; }
+        .input-icon {
+            position: absolute; left: 14px; top: 50%; transform: translateY(-50%);
+            color: var(--text-3); font-size: 0.95rem; pointer-events: none;
+            z-index: 1;
+        }
+        .form-input {
+            width: 100%;
+            background: rgba(255,255,255,0.05);
+            border: 1.5px solid var(--border);
+            border-radius: var(--r);
+            padding: 12px 14px 12px 40px;
+            font-family: inherit; font-size: 0.9rem;
+            color: var(--text);
+            transition: all .2s;
+            outline: none;
+        }
+        .form-input::placeholder { color: var(--text-3); }
+        .form-input:focus {
+            border-color: var(--blue);
+            background: rgba(59,130,246,0.06);
+            box-shadow: 0 0 0 3px rgba(59,130,246,.12);
+        }
+        .form-input.is-invalid {
+            border-color: var(--red);
+            box-shadow: 0 0 0 3px rgba(239,68,68,.1);
+        }
+        .btn-reveal {
+            position: absolute; right: 12px; top: 50%; transform: translateY(-50%);
+            background: none; border: none; cursor: pointer;
+            color: var(--text-3); font-size: 0.95rem; padding: 4px;
+            transition: color .2s;
+        }
+        .btn-reveal:hover { color: var(--text-2); }
+        .field-error {
+            font-size: 0.76rem; color: var(--red);
+            margin-top: 5px; display: flex; align-items: center; gap: 4px;
+        }
+
+        /* ── Remember row ── */
+        .row-check {
+            display: flex; align-items: center; justify-content: space-between;
+            margin-bottom: 22px;
+        }
+        .check-wrap {
+            display: flex; align-items: center; gap: 8px;
+            cursor: pointer;
+        }
+        .check-wrap input[type=checkbox] { display: none; }
+        .check-box {
+            width: 16px; height: 16px;
+            border: 1.5px solid var(--border-h);
+            border-radius: 4px;
+            background: rgba(255,255,255,.05);
+            display: flex; align-items: center; justify-content: center;
+            transition: all .2s;
+            flex-shrink: 0;
+        }
+        .check-wrap input:checked + .check-box {
+            background: var(--blue);
+            border-color: var(--blue);
+        }
+        .check-wrap input:checked + .check-box::after {
+            content: '✓'; font-size: 0.65rem; color: #fff; font-weight: 700;
+        }
+        .check-label { font-size: 0.81rem; color: var(--text-2); }
+
+        /* ── Submit ── */
+        .btn-login {
+            width: 100%;
+            background: linear-gradient(135deg, #3b82f6, #6d28d9);
+            border: none; border-radius: var(--pill);
+            padding: 13px;
+            font-family: inherit; font-size: 0.93rem; font-weight: 700;
+            color: #fff; cursor: pointer;
+            transition: all .2s;
+            box-shadow: 0 4px 20px rgba(59,130,246,.35);
+            display: flex; align-items: center; justify-content: center; gap: 8px;
+            letter-spacing: 0.01em;
+        }
+        .btn-login:hover {
+            filter: brightness(1.1);
+            transform: translateY(-1px);
+            box-shadow: 0 8px 30px rgba(59,130,246,.45);
+        }
+        .btn-login:active { transform: translateY(0); }
+
+        /* ── Alert ── */
+        .alert-error {
+            background: rgba(239,68,68,.08);
+            border: 1px solid rgba(239,68,68,.2);
+            border-radius: var(--r);
+            padding: 12px 16px;
+            font-size: 0.83rem; color: #fca5a5;
+            margin-bottom: 20px;
+            display: flex; align-items: center; gap: 8px;
+        }
+
+        /* ── Credential hints ── */
+        .cred-hint {
+            margin-top: 20px;
+            background: rgba(59,130,246,.06);
+            border: 1px solid rgba(59,130,246,.14);
+            border-radius: var(--r);
+            padding: 14px 16px;
+        }
+        .cred-title {
+            font-size: 0.7rem; font-weight: 600;
+            text-transform: uppercase; letter-spacing: .07em;
+            color: #60a5fa; margin-bottom: 8px;
+            display: flex; align-items: center; gap: 6px;
+        }
+        .cred-row {
+            display: flex; align-items: center; gap: 6px;
+            font-size: 0.78rem; color: var(--text-2); margin-top: 3px;
+        }
+        .cred-badge {
+            font-size: 0.63rem; font-weight: 700; padding: 2px 8px;
+            border-radius: var(--pill); letter-spacing: .04em;
+        }
+        .badge-admin  { background: rgba(59,130,246,.18); color: #93c5fd; border: 1px solid rgba(59,130,246,.3); }
+        .badge-viewer { background: rgba(139,92,246,.14); color: #c4b5fd; border: 1px solid rgba(139,92,246,.25); }
+        code { font-size: 0.78rem; color: #94a3b8; }
+
+        .divider { text-align: center; margin-top: 18px; font-size: 0.73rem; color: var(--text-3); }
+    </style>
+</head>
+<body>
+<div class="login-wrap">
+    <!-- Brand -->
+    <div class="brand">
+        <div class="brand-logo"><i class="bi bi-layers-fill"></i></div>
+        <div class="brand-name">Ne<span>xus</span></div>
+    </div>
+
+    <!-- Card -->
+    <div class="login-card">
+        <div class="card-head">
+            <div class="card-title">Welcome back</div>
+            <div class="card-sub">Sign in to your operations dashboard</div>
+        </div>
+
+        <!-- Global errors -->
+        @if (!ViewData.ModelState.IsValid && ViewData.ModelState.ContainsKey(string.Empty))
+        {
+            <div class="alert-error">
+                <i class="bi bi-exclamation-triangle-fill"></i>
+                @Html.ValidationMessage(string.Empty)
+            </div>
+        }
+
+        <form asp-controller="Account" asp-action="Login" method="post" novalidate>
+            @Html.AntiForgeryToken()
+            <input type="hidden" name="returnUrl" value="@ViewData["ReturnUrl"]" />
+            <input type="hidden" asp-for="FailedAttempts" />
+
+            <!-- Email -->
+            <div class="form-group">
+                <label class="form-label">Email Address</label>
+                <div class="input-wrap">
+                    <span class="input-icon"><i class="bi bi-envelope-fill"></i></span>
+                    <input asp-for="Email" type="email" class="form-input @(ViewData.ModelState["Email"]?.Errors.Count > 0 ? "is-invalid" : "")"
+                           placeholder="you@nexus.io" autocomplete="email" />
+                </div>
+                <span asp-validation-for="Email" class="field-error"></span>
+            </div>
+
+            <!-- Password -->
+            <div class="form-group">
+                <label class="form-label">Password</label>
+                <div class="input-wrap">
+                    <span class="input-icon"><i class="bi bi-lock-fill"></i></span>
+                    <input asp-for="Password" type="password" id="pw-input"
+                           class="form-input @(ViewData.ModelState["Password"]?.Errors.Count > 0 ? "is-invalid" : "")"
+                           placeholder="••••••••" autocomplete="current-password" />
+                    <button type="button" class="btn-reveal" id="pw-toggle" tabindex="-1">
+                        <i class="bi bi-eye-fill" id="pw-eye"></i>
+                    </button>
+                </div>
+                <span asp-validation-for="Password" class="field-error"></span>
+            </div>
+
+            <!-- Remember -->
+            <div class="row-check">
+                <label class="check-wrap">
+                    <input asp-for="RememberMe" type="checkbox" />
+                    <div class="check-box"></div>
+                    <span class="check-label">Keep me signed in</span>
+                </label>
+            </div>
+
+            <button type="submit" class="btn-login">
+                <i class="bi bi-box-arrow-in-right"></i>
+                Sign In
+            </button>
+        </form>
+
+        <!-- Credential hints for dev/demo -->
+        <div class="cred-hint">
+            <div class="cred-title"><i class="bi bi-info-circle-fill"></i> Demo Credentials</div>
+            <div class="cred-row">
+                <span class="cred-badge badge-admin">Admin</span>
+                <code>admin@nexus.io</code> &mdash; <code>Admin@123</code>
+            </div>
+            <div class="cred-row">
+                <span class="cred-badge badge-viewer">Viewer</span>
+                <code>viewer@nexus.io</code> &mdash; <code>Viewer@123</code>
+            </div>
+        </div>
+
+        <div class="divider">&copy; @DateTime.Now.Year Nexus Operations Platform</div>
+    </div>
+</div>
+
+@if (Model != null && Model.FailedAttempts >= 3)
+{
+    <!-- Meme Overlay -->
+    <div id="meme-overlay" style="position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(8, 12, 24, 0.95); z-index: 9999; display: flex; align-items: center; justify-content: center; flex-direction: column; backdrop-filter: blur(10px);">
+        <img src="~/images/meme.jpg" alt="You failed to login" style="max-width: 90%; max-height: 70vh; border-radius: 16px; box-shadow: 0 20px 60px rgba(0,0,0,0.8); border: 1px solid rgba(255,255,255,0.1);" />
+        <button id="close-meme" style="margin-top: 30px; padding: 12px 24px; background: linear-gradient(135deg, #ef4444, #b91c1c); border: none; border-radius: 999px; color: white; font-weight: 700; cursor: pointer; font-size: 1.05rem; box-shadow: 0 8px 24px rgba(239, 68, 68, 0.3); transition: all 0.2s; display: flex; align-items: center; gap: 8px;">
+            <i class="bi bi-x-circle-fill"></i>
+            Okay, I'll try again
+        </button>
+    </div>
+}
+
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const pwInput  = document.getElementById('pw-input');
+        const pwToggle = document.getElementById('pw-toggle');
+        const pwEye    = document.getElementById('pw-eye');
+        if (pwToggle) {
+            pwToggle.addEventListener('click', () => {
+                const isText = pwInput.type === 'text';
+                pwInput.type = isText ? 'password' : 'text';
+                pwEye.className = isText ? 'bi bi-eye-fill' : 'bi bi-eye-slash-fill';
+            });
+        }
+
+        const closeMemeBtn = document.getElementById('close-meme');
+        if (closeMemeBtn) {
+            closeMemeBtn.addEventListener('click', () => {
+                const overlay = document.getElementById('meme-overlay');
+                if (overlay) {
+                    overlay.style.display = 'none';
+                    overlay.classList.add('fade-out');
+                }
+            });
+        }
+    });
+</script>
+</body>
+</html>

@@ -1,69 +1,67 @@
 @model ASPNetDashboard.Models.UserModel
 @{ ViewData["Title"] = "Edit User"; }
 
-<div class="row justify-content-center">
-<div class="col-lg-7">
-
-<nav aria-label="breadcrumb" class="mb-3">
-    <ol class="breadcrumb">
-        <li class="breadcrumb-item"><a asp-controller="User" asp-action="Index">Users</a></li>
-        <li class="breadcrumb-item active">Edit #@Model.Id</li>
-    </ol>
-</nav>
-
-<div class="form-wrap">
-    <div class="fw-head">
-        <div class="u-ava" style="width:52px;height:52px;font-size:1.3rem;border-radius:var(--r-md);">
-            @Model.Name[0]
-        </div>
-        <div>
-            <div class="fw-title">Editing: @Model.Name</div>
-            <div class="fw-sub">Password is not changed here. Update name, email, or age only.</div>
-        </div>
+<div style="max-width:680px;">
+    <div class="mb-3">
+        <a asp-action="Index" class="btn btn-outline-secondary btn-sm">
+            <i class="bi bi-arrow-left me-1"></i>Back to Users
+        </a>
     </div>
 
-    <form asp-controller="User" asp-action="Edit" method="post" novalidate>
-        @Html.AntiForgeryToken()
-        <input asp-for="Id" type="hidden" />
-        <div asp-validation-summary="ModelOnly" class="alert alert-danger py-2 small mb-4"></div>
-
-        <div class="mb-4">
-            <label asp-for="Name" class="form-label">Full Name <span style="color:var(--red)">*</span></label>
-            <div class="input-group">
-                <span class="input-group-text"><i class="bi bi-person"></i></span>
-                <input asp-for="Name" class="form-control" />
+    <div class="form-wrap">
+        <div class="form-header d-flex align-items-center gap-3">
+            <div class="form-h-icon amber"><i class="bi bi-pencil-fill"></i></div>
+            <div>
+                <div class="form-h-title">Edit User — @Model.Name</div>
+                <div class="form-h-sub">Password is not editable here. Leave it as-is in the DB.</div>
             </div>
-            <span asp-validation-for="Name" class="invalid-feedback d-block"></span>
         </div>
 
-        <div class="mb-4">
-            <label asp-for="Email" class="form-label">Email Address <span style="color:var(--red)">*</span></label>
-            <div class="input-group">
-                <span class="input-group-text"><i class="bi bi-envelope"></i></span>
-                <input asp-for="Email" class="form-control" type="email" />
+        <form asp-action="Edit" method="post" novalidate>
+            @Html.AntiForgeryToken()
+            <input asp-for="Id" type="hidden" />
+            <input asp-for="PasswordHash" type="hidden" />
+
+            <div class="row g-3">
+                <div class="col-md-6">
+                    <label asp-for="Name" class="form-label"></label>
+                    <input asp-for="Name" class="form-control" />
+                    <span asp-validation-for="Name" class="invalid-feedback d-block"></span>
+                </div>
+                <div class="col-md-6">
+                    <label asp-for="Email" class="form-label"></label>
+                    <input asp-for="Email" type="email" class="form-control" />
+                    <span asp-validation-for="Email" class="invalid-feedback d-block"></span>
+                </div>
+                <div class="col-md-4">
+                    <label asp-for="Age" class="form-label"></label>
+                    <input asp-for="Age" type="number" class="form-control" />
+                    <span asp-validation-for="Age" class="invalid-feedback d-block"></span>
+                </div>
+                <div class="col-md-4">
+                    <label asp-for="Department" class="form-label"></label>
+                    <input asp-for="Department" class="form-control" />
+                </div>
+                <div class="col-md-4">
+                    <label asp-for="Status" class="form-label"></label>
+                    <select asp-for="Status" class="form-select">
+                        <option value="Active">Active</option>
+                        <option value="Inactive">Inactive</option>
+                        <option value="Suspended">Suspended</option>
+                    </select>
+                </div>
             </div>
-            <span asp-validation-for="Email" class="invalid-feedback d-block"></span>
-        </div>
 
-        <div class="mb-5">
-            <label asp-for="Age" class="form-label">Age <span style="color:var(--red)">*</span></label>
-            <div class="input-group" style="max-width:200px;">
-                <span class="input-group-text"><i class="bi bi-calendar-event"></i></span>
-                <input asp-for="Age" class="form-control" type="number" min="18" max="60" />
+            <div class="d-flex gap-2 mt-4 pt-3" style="border-top:1px solid var(--border);">
+                <button type="submit" class="btn btn-primary">
+                    <i class="bi bi-check-lg me-1"></i>Save Changes
+                </button>
+                <a asp-action="Index" class="btn btn-outline-secondary">Cancel</a>
             </div>
-            <span asp-validation-for="Age" class="invalid-feedback d-block"></span>
-        </div>
-
-        <div class="d-flex gap-3">
-            <button type="submit" class="btn btn-warning">
-                <i class="bi bi-check-circle-fill me-1"></i>Update User
-            </button>
-            <a asp-controller="User" asp-action="Index" class="btn btn-outline-secondary">
-                <i class="bi bi-arrow-left me-1"></i>Cancel
-            </a>
-        </div>
-    </form>
+        </form>
+    </div>
 </div>
 
-</div>
-</div>
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

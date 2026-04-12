@@ -1,99 +1,76 @@
 using ASPNetDashboard.Data;
 using ASPNetDashboard.Models;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
 namespace ASPNetDashboard.Controllers
 {
+    [Authorize]
     public class TransactionController : Controller
     {
-        private string CurrentRole =>
-            HttpContext.Session.GetString("Role") ?? "Guest";
+        private readonly AppDbContext _db;
+        public TransactionController(AppDbContext db) => _db = db;
 
-        // ── Index / List ─────────────────────────────────────────────────
-
-        public IActionResult Index(
-            string? search,
-            string? type,
-            string? category,
-            DateTime? fromDate,
-            DateTime? toDate)
+        // ── Index ──────────────────────────────────────────────────────────
+        public async Task<IActionResult> Index(string? search, string? type, string? category)
         {
-            ViewBag.Role     = CurrentRole;
             ViewBag.Search   = search;
             ViewBag.Type     = type;
             ViewBag.Category = category;
-            ViewBag.FromDate = fromDate?.ToString("yyyy-MM-dd");
-            ViewBag.ToDate   = toDate?.ToString("yyyy-MM-dd");
 
-            var txList = AppDataStore.Transactions.AsQueryable();
+            var categories = await _db.Transactions
+                .Select(t => t.Category).Distinct().OrderBy(c => c).ToListAsync();
+            ViewBag.Categories = categories;
+
+            var q = _db.Transactions.AsQueryable();
 
             if (!string.IsNullOrWhiteSpace(search))
-                txList = txList.Where(t =>
-                    t.Description.Contains(search, StringComparison.OrdinalIgnoreCase));
+                q = q.Where(t => t.Description.Contains(search) ||
+                                 t.Reference.Contains(search));
 
             if (!string.IsNullOrWhiteSpace(type))
-                txList = txList.Where(t => t.Type == type);
+                q = q.Where(t => t.Type == type);
 
             if (!string.IsNullOrWhiteSpace(category))
-                txList = txList.Where(t =>
-                    t.Category.Equals(category, StringComparison.OrdinalIgnoreCase));
+                q = q.Where(t => t.Category == category);
 
-            if (fromDate.HasValue)
-                txList = txList.Where(t => t.Date >= fromDate.Value);
-
-            if (toDate.HasValue)
-                txList = txList.Where(t => t.Date < toDate.Value.AddDays(1));
-
-            var filtered = txList.OrderByDescending(t => t.Date).ToList();
-
-            // Summary for filtered results
-            ViewBag.FilteredCredit = filtered.Where(t => t.Type == "Credit").Sum(t => t.Amount);
-            ViewBag.FilteredDebit  = filtered.Where(t => t.Type == "Debit").Sum(t => t.Amount);
-
-            // Totals for cards (always full set)
-            ViewBag.TotalCredit = AppDataStore.TotalCredit;
-            ViewBag.TotalDebit  = AppDataStore.TotalDebit;
-            ViewBag.NetBalance  = AppDataStore.NetBalance;
-
-            // Categories for filter dropdown
-            ViewBag.Categories = AppDataStore.Transactions
-                .Select(t => t.Category)
-                .Distinct()
-                .OrderBy(c => c)
-                .ToList();
-
-            return View(filtered);
+            return View(await q.OrderByDescending(t => t.Date).ToListAsync());
         }
 
-        // ── Create ───────────────────────────────────────────────────────
+        // ── Create ─────────────────────────────────────────────────────────
+        [Authorize(Roles = "Admin")]
+        public IActionResult Create() => View(new TransactionModel());
 
-        public IActionResult Create()
+        [HttpPost, ValidateAntiForgeryToken]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> Create(TransactionModel model)
         {
-            if (CurrentRole != "Admin")
-                return RedirectToAction("Index");
+            if (!ModelState.IsValid) return View(model);
 
-            ViewBag.Role = CurrentRole;
-            return View(new TransactionModel());
+            model.Date      = DateTime.UtcNow;
+            model.Reference = $"REF-{DateTime.UtcNow:yyyyMMdd}-{new Random().Next(1000, 9999)}";
+
+            _db.Transactions.Add(model);
+            await _db.SaveChangesAsync();
+
+            TempData["Success"] = $"Transaction '{model.Description}' recorded successfully.";
+            return RedirectToAction(nameof(Index));
         }
 
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public IActionResult Create(TransactionModel model)
+        // ── Delete ─────────────────────────────────────────────────────────
+        [HttpPost, ValidateAntiForgeryToken]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> Delete(int id)
         {
-            if (CurrentRole != "Admin")
-                return RedirectToAction("Index");
-
-            ViewBag.Role = CurrentRole;
-
-            if (ModelState.IsValid)
+            var tx = await _db.Transactions.FindAsync(id);
+            if (tx is not null)
             {
-                AppDataStore.AddTransaction(model);
-                TempData["Success"] =
-                    $"Transaction #{AppDataStore.Transactions.Last().Id} added successfully!";
-                return RedirectToAction("Index");
+                _db.Transactions.Remove(tx);
+                await _db.SaveChangesAsync();
+                TempData["Success"] = $"Transaction '{tx.Description}' has been removed.";
             }
-
-            return View(model);
+            return RedirectToAction(nameof(Index));
         }
     }
 }

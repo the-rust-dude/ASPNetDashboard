@@ -1,125 +1,113 @@
 @model List<ASPNetDashboard.Models.UserModel>
 @{
     ViewData["Title"] = "Users";
-    var role   = ViewBag.Role as string ?? "Guest";
-    var search = ViewBag.Search as string ?? "";
-    var sortBy = ViewBag.SortBy as string ?? "";
+    var role = User.FindFirst(System.Security.Claims.ClaimTypes.Role)?.Value ?? "Viewer";
 }
 
-<div class="d-flex justify-content-between align-items-center mb-4">
+<div class="d-flex align-items-center justify-content-between mb-3">
     <div>
-        <h4 class="fw-bold mb-1" style="letter-spacing:-.02em;">User Records</h4>
-        <p class="mb-0" style="color:var(--text-3);font-size:.875rem;">
-            @Model.Count user(s) found
-            @if (role == "Guest")
-            {
-                <span class="pill p-neutral ms-2">
-                    <i class="bi bi-eye"></i> Read-only
-                </span>
-            }
-        </p>
+        <div class="page-title">User Management</div>
+        <div class="page-sub">@Model.Count record(s) · SQLite</div>
     </div>
     @if (role == "Admin")
     {
-        <a asp-controller="User" asp-action="Create" class="btn btn-primary">
+        <a asp-action="Create" class="btn btn-primary btn-sm">
             <i class="bi bi-person-plus-fill me-1"></i>Add User
         </a>
     }
 </div>
 
 <!-- Filter bar -->
-<div class="fbar mb-4">
-    <form method="get" class="row g-2 align-items-end">
-        <div class="col-sm-6 col-md-5">
-            <label class="form-label">Search</label>
-            <div class="input-group">
-                <span class="input-group-text"><i class="bi bi-search"></i></span>
-                <input type="text" name="search" value="@search" class="form-control"
-                       placeholder="Name or email…" />
-            </div>
-        </div>
-        <div class="col-sm-4 col-md-3">
-            <label class="form-label">Sort By</label>
-            <select name="sortBy" class="form-select">
-                <option value=""     selected="@(sortBy == "")">Default</option>
-                <option value="name" selected="@(sortBy == "name")">Name A–Z</option>
-                <option value="age"  selected="@(sortBy == "age")">Age</option>
-                <option value="date" selected="@(sortBy == "date")">Newest First</option>
-            </select>
-        </div>
-        <div class="col-auto d-flex gap-2">
-            <button type="submit" class="btn btn-primary btn-sm">
-                <i class="bi bi-funnel-fill me-1"></i>Filter
-            </button>
-            <a asp-controller="User" asp-action="Index" class="btn btn-outline-secondary btn-sm">
-                <i class="bi bi-x me-1"></i>Reset
-            </a>
-        </div>
-    </form>
-</div>
+<form method="get" class="filter-bar">
+    <i class="bi bi-funnel-fill" style="color:var(--text-3);font-size:.85rem;"></i>
+    <input name="search" value="@ViewBag.Search" class="form-control" style="width:220px;" placeholder="Search name, email, dept…" />
+    <select name="status" class="form-select" style="width:150px;">
+        <option value="">All Statuses</option>
+        <option value="Active"    selected="@(ViewBag.Status == "Active"    ? "selected" : null)">Active</option>
+        <option value="Inactive"  selected="@(ViewBag.Status == "Inactive"  ? "selected" : null)">Inactive</option>
+        <option value="Suspended" selected="@(ViewBag.Status == "Suspended" ? "selected" : null)">Suspended</option>
+    </select>
+    <select name="sortBy" class="form-select" style="width:160px;">
+        <option value="">Sort: Recent</option>
+        <option value="name"   selected="@(ViewBag.SortBy == "name"   ? "selected" : null)">Sort: Name</option>
+        <option value="age"    selected="@(ViewBag.SortBy == "age"    ? "selected" : null)">Sort: Age</option>
+        <option value="status" selected="@(ViewBag.SortBy == "status" ? "selected" : null)">Sort: Status</option>
+    </select>
+    <button type="submit" class="btn btn-primary btn-sm"><i class="bi bi-search me-1"></i>Filter</button>
+    @if (!string.IsNullOrEmpty(ViewBag.Search as string) || !string.IsNullOrEmpty(ViewBag.Status as string))
+    {
+        <a asp-action="Index" class="btn btn-outline-secondary btn-sm">
+            <i class="bi bi-x-circle me-1"></i>Clear
+        </a>
+    }
+</form>
 
-<!-- Table -->
-<div class="dcard">
+<div class="card-dark">
     @if (!Model.Any())
     {
         <div class="empty-state">
-            <div class="empty-ico"><i class="bi bi-people"></i></div>
-            <p>No users found.@(role=="Admin" ? " Try adding one!" : "")</p>
+            <div class="empty-icon"><i class="bi bi-people"></i></div>
+            <div class="empty-title">No users found</div>
+            <div style="font-size:.8rem;">Try adjusting your search or filter criteria.</div>
         </div>
     }
     else
     {
-        <div class="table-responsive">
-            <table class="table mb-0">
-                <thead>
+        <table class="table mb-0">
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>User</th>
+                    <th>Age</th>
+                    <th>Department</th>
+                    <th>Status</th>
+                    <th>Joined</th>
+                    @if (role == "Admin") { <th style="text-align:right;">Actions</th> }
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var u in Model)
+                {
                     <tr>
-                        <th>#</th>
-                        <th>User</th>
-                        <th>Age</th>
-                        <th>Registered</th>
-                        @if (role == "Admin") { <th style="text-align:center;">Actions</th> }
-                    </tr>
-                </thead>
-                <tbody>
-                    @foreach (var user in Model)
-                    {
-                        <tr>
-                            <td style="color:var(--text-3);font-size:.78rem;font-weight:600;">@user.Id.ToString("D3")</td>
-                            <td>
-                                <div class="d-flex align-items-center gap-3">
-                                    <div class="u-ava">@user.Name[0]</div>
-                                    <div>
-                                        <div style="font-weight:600;font-size:.9rem;">@user.Name</div>
-                                        <div style="font-size:.77rem;color:var(--text-3);">@user.Email</div>
-                                    </div>
+                        <td><strong style="color:var(--text-3);font-size:.76rem;">#@u.Id.ToString("D3")</strong></td>
+                        <td>
+                            <div class="d-flex align-items-center gap-2">
+                                <div class="u-ava">@u.Name[0]</div>
+                                <div>
+                                    <div class="u-name">@u.Name</div>
+                                    <div class="u-email">@u.Email</div>
+                                </div>
+                            </div>
+                        </td>
+                        <td><strong>@u.Age</strong></td>
+                        <td><span style="color:var(--text-2);">@(string.IsNullOrEmpty(u.Department) ? "—" : u.Department)</span></td>
+                        <td>
+                            <span class="badge-pill @(u.Status == "Active" ? "bp-active" : u.Status == "Inactive" ? "bp-inactive" : "bp-suspend")">
+                                <i class="bi bi-circle-fill" style="font-size:.45rem;"></i>
+                                @u.Status
+                            </span>
+                        </td>
+                        <td style="color:var(--text-3);font-size:.78rem;">@u.CreatedAt.ToString("MMM dd, yyyy")</td>
+                        @if (role == "Admin")
+                        {
+                            <td style="text-align:right;">
+                                <div class="d-flex gap-1 justify-content-end">
+                                    <a asp-action="Edit" asp-route-id="@u.Id" class="btn btn-warning btn-sm">
+                                        <i class="bi bi-pencil-fill"></i>
+                                    </a>
+                                    <form asp-action="Delete" asp-route-id="@u.Id" method="post" class="mb-0"
+                                          onsubmit="return confirm('Remove @u.Name from the system?')">
+                                        @Html.AntiForgeryToken()
+                                        <button type="submit" class="btn btn-danger btn-sm">
+                                            <i class="bi bi-trash-fill"></i>
+                                        </button>
+                                    </form>
                                 </div>
                             </td>
-                            <td><span class="pill p-neutral">@user.Age yrs</span></td>
-                            <td style="color:var(--text-3);font-size:.82rem;">@user.CreatedAt.ToString("MMM dd, yyyy")</td>
-                            @if (role == "Admin")
-                            {
-                                <td style="text-align:center;">
-                                    <div class="d-flex gap-2 justify-content-center">
-                                        <a asp-controller="User" asp-action="Edit" asp-route-id="@user.Id"
-                                           class="btn btn-warning btn-sm">
-                                            <i class="bi bi-pencil-fill"></i>
-                                        </a>
-                                        <form asp-controller="User" asp-action="Delete" asp-route-id="@user.Id"
-                                              method="post" class="d-inline"
-                                              onsubmit="return confirm('Delete @user.Name?')">
-                                            @Html.AntiForgeryToken()
-                                            <button type="submit" class="btn btn-danger btn-sm">
-                                                <i class="bi bi-trash-fill"></i>
-                                            </button>
-                                        </form>
-                                    </div>
-                                </td>
-                            }
-                        </tr>
-                    }
-                </tbody>
-            </table>
-        </div>
-        <div class="dcard-foot">Showing @Model.Count record(s)</div>
+                        }
+                    </tr>
+                }
+            </tbody>
+        </table>
     }
 </div>
