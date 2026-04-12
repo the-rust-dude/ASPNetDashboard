@@ -4,131 +4,170 @@
     var role = User.FindFirst(System.Security.Claims.ClaimTypes.Role)?.Value ?? "Viewer";
     var totalCredit = Model.Where(t => t.Type == "Credit").Sum(t => t.Amount);
     var totalDebit  = Model.Where(t => t.Type == "Debit").Sum(t => t.Amount);
+    var net         = totalCredit - totalDebit;
 }
 
-<div class="d-flex align-items-center justify-content-between mb-3">
+<!-- ── Page heading ── -->
+<div class="d-flex align-items-center justify-content-between mb-4">
     <div>
-        <div class="page-title">Transactions</div>
-        <div class="page-sub">@Model.Count record(s) shown</div>
+        <h4 class="fw-bold mb-0"><i class="bi bi-receipt text-success me-2"></i>Transactions</h4>
+        <p class="text-muted small mb-0">@Model.Count record(s) shown</p>
     </div>
     @if (role == "Admin")
     {
-        <a asp-action="Create" class="btn btn-primary btn-sm">
+        <a asp-action="Create" class="btn btn-success btn-sm">
             <i class="bi bi-plus-circle-fill me-1"></i>New Transaction
         </a>
     }
 </div>
 
-<!-- Summary strip -->
-<div class="row g-2 mb-3">
-    <div class="col-auto">
-        <div style="background:rgba(16,185,129,.08);border:1px solid rgba(16,185,129,.18);border-radius:var(--r);padding:10px 16px;font-size:.8rem;color:#34d399;display:flex;align-items:center;gap:8px;">
-            <i class="bi bi-arrow-up-circle-fill"></i>
-            <span>Credits: <strong>&#8369;@String.Format("{0:N0}", totalCredit)</strong></span>
+<!-- ── Summary cards ── -->
+<div class="row g-3 mb-4">
+    <div class="col-sm-12 col-md-4">
+        <div class="card border-0 bg-success bg-opacity-10 shadow-sm">
+            <div class="card-body d-flex align-items-center gap-3">
+                <i class="bi bi-arrow-up-circle-fill text-success fs-3"></i>
+                <div>
+                    <div class="small text-muted">Total Credit</div>
+                    <div class="fw-bold text-success">₱@String.Format("{0:N2}", totalCredit)</div>
+                </div>
+            </div>
         </div>
     </div>
-    <div class="col-auto">
-        <div style="background:rgba(239,68,68,.07);border:1px solid rgba(239,68,68,.16);border-radius:var(--r);padding:10px 16px;font-size:.8rem;color:#f87171;display:flex;align-items:center;gap:8px;">
-            <i class="bi bi-arrow-down-circle-fill"></i>
-            <span>Debits: <strong>&#8369;@String.Format("{0:N0}", totalDebit)</strong></span>
+    <div class="col-sm-12 col-md-4">
+        <div class="card border-0 bg-danger bg-opacity-10 shadow-sm">
+            <div class="card-body d-flex align-items-center gap-3">
+                <i class="bi bi-arrow-down-circle-fill text-danger fs-3"></i>
+                <div>
+                    <div class="small text-muted">Total Debit</div>
+                    <div class="fw-bold text-danger">₱@String.Format("{0:N2}", totalDebit)</div>
+                </div>
+            </div>
         </div>
     </div>
-    <div class="col-auto">
-        @{ decimal net = totalCredit - totalDebit; }
-        <div style="background:rgba(59,130,246,.07);border:1px solid rgba(59,130,246,.15);border-radius:var(--r);padding:10px 16px;font-size:.8rem;color:#60a5fa;display:flex;align-items:center;gap:8px;">
-            <i class="bi bi-wallet2"></i>
-            <span>Net: <strong>&#8369;@String.Format("{0:N0}", net)</strong></span>
+    <div class="col-sm-12 col-md-4">
+        <div class="card border-0 bg-info bg-opacity-10 shadow-sm">
+            <div class="card-body d-flex align-items-center gap-3">
+                <i class="bi bi-wallet2 text-info fs-3"></i>
+                <div>
+                    <div class="small text-muted">Net Balance</div>
+                    <div class="fw-bold @(net >= 0 ? "text-info" : "text-warning")">
+                        ₱@String.Format("{0:N2}", net)
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 </div>
 
-<!-- Filter bar -->
-<form method="get" class="filter-bar">
-    <i class="bi bi-funnel-fill" style="color:var(--text-3);font-size:.85rem;"></i>
-    <input name="search" value="@ViewBag.Search" class="form-control" style="width:220px;" placeholder="Search description or ref…" />
-    <select name="type" class="form-select" style="width:150px;">
-        <option value="">All Types</option>
-        <option value="Credit" selected="@(ViewBag.Type == "Credit" ? "selected" : null)">Credit</option>
-        <option value="Debit"  selected="@(ViewBag.Type == "Debit"  ? "selected" : null)">Debit</option>
-    </select>
-    <select name="category" class="form-select" style="width:160px;">
-        <option value="">All Categories</option>
-        @foreach (var cat in (ViewBag.Categories as List<string> ?? new()))
-        {
-            <option value="@cat" selected="@(ViewBag.Category == cat ? "selected" : null)">@cat</option>
-        }
-    </select>
-    <button type="submit" class="btn btn-primary btn-sm"><i class="bi bi-search me-1"></i>Filter</button>
-    @if (!string.IsNullOrEmpty(ViewBag.Search as string) || !string.IsNullOrEmpty(ViewBag.Type as string))
-    {
-        <a asp-action="Index" class="btn btn-outline-secondary btn-sm">
-            <i class="bi bi-x-circle me-1"></i>Clear
-        </a>
-    }
-</form>
-
-<div class="card-dark">
-    @if (!Model.Any())
-    {
-        <div class="empty-state">
-            <div class="empty-icon"><i class="bi bi-receipt-cutoff"></i></div>
-            <div class="empty-title">No transactions found</div>
-            <div style="font-size:.8rem;">Try clearing your filters or add a new transaction.</div>
-        </div>
-    }
-    else
-    {
-        <table class="table mb-0">
-            <thead>
-                <tr>
-                    <th>Reference</th>
-                    <th>Description</th>
-                    <th>Type</th>
-                    <th>Category</th>
-                    <th>Status</th>
-                    <th>Amount</th>
-                    <th>Date</th>
-                    @if (role == "Admin") { <th style="text-align:right;">Action</th> }
-                </tr>
-            </thead>
-            <tbody>
-                @foreach (var t in Model)
+<!-- ── Filter form ── -->
+<div class="card border-0 shadow-sm mb-4">
+    <div class="card-body py-3">
+        <form method="get" class="row g-2 align-items-end">
+            <div class="col-sm-12 col-md-4">
+                <label class="form-label small fw-semibold text-muted mb-1">Search</label>
+                <input name="search" value="@ViewBag.Search" class="form-control form-control-sm"
+                       placeholder="Description or reference…" />
+            </div>
+            <div class="col-sm-6 col-md-2">
+                <label class="form-label small fw-semibold text-muted mb-1">Type</label>
+                <select name="type" class="form-select form-select-sm">
+                    <option value="">All</option>
+                    <option value="Credit" selected="@(ViewBag.Type=="Credit"?"selected":null)">Credit</option>
+                    <option value="Debit"  selected="@(ViewBag.Type=="Debit" ?"selected":null)">Debit</option>
+                </select>
+            </div>
+            <div class="col-sm-6 col-md-3">
+                <label class="form-label small fw-semibold text-muted mb-1">Category</label>
+                <select name="category" class="form-select form-select-sm">
+                    <option value="">All Categories</option>
+                    @foreach (var cat in (ViewBag.Categories as List<string> ?? new()))
+                    {
+                        <option value="@cat" selected="@(ViewBag.Category==cat?"selected":null)">@cat</option>
+                    }
+                </select>
+            </div>
+            <div class="col-auto">
+                <button type="submit" class="btn btn-primary btn-sm">
+                    <i class="bi bi-search me-1"></i>Filter
+                </button>
+                @if (!string.IsNullOrEmpty(ViewBag.Search as string) || !string.IsNullOrEmpty(ViewBag.Type as string))
                 {
-                    <tr>
-                        <td><span style="font-size:.72rem;color:var(--text-3);font-variant-numeric:tabular-nums;">@t.Reference</span></td>
-                        <td><strong>@t.Description</strong></td>
-                        <td>
-                            <span class="badge-pill @(t.Type=="Credit" ? "bp-credit" : "bp-debit")">
-                                <i class="bi bi-arrow-@(t.Type=="Credit"?"up":"down")"></i>@t.Type
-                            </span>
-                        </td>
-                        <td><span style="color:var(--text-2);">@t.Category</span></td>
-                        <td>
-                            <span class="badge-pill @(t.Status=="Completed" ? "bp-complete" : t.Status=="Pending" ? "bp-pending" : "bp-failed")">
-                                @t.Status
-                            </span>
-                        </td>
-                        <td>
-                            <strong style="color:@(t.Type=="Credit" ? "var(--green)" : "var(--red)");">
-                                @(t.Type=="Credit"?"+":"-")&#8369;@String.Format("{0:N2}",t.Amount)
-                            </strong>
-                        </td>
-                        <td style="color:var(--text-3);font-size:.78rem;white-space:nowrap;">@t.Date.ToString("MMM dd, yyyy HH:mm")</td>
-                        @if (role == "Admin")
-                        {
-                            <td style="text-align:right;">
-                                <form asp-action="Delete" asp-route-id="@t.Id" method="post" class="mb-0"
-                                      onsubmit="return confirm('Remove this transaction?')">
-                                    @Html.AntiForgeryToken()
-                                    <button type="submit" class="btn btn-danger btn-sm">
-                                        <i class="bi bi-trash-fill"></i>
-                                    </button>
-                                </form>
-                            </td>
-                        }
-                    </tr>
+                    <a asp-action="Index" class="btn btn-outline-secondary btn-sm ms-1">
+                        <i class="bi bi-x-circle me-1"></i>Clear
+                    </a>
                 }
-            </tbody>
-        </table>
-    }
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- ── Responsive table ── -->
+<div class="card border-0 shadow-sm">
+    <div class="card-body p-0">
+
+        @if (!Model.Any())
+        {
+            <div class="text-center py-5 text-muted">
+                <i class="bi bi-receipt-cutoff fs-1 d-block mb-2"></i>
+                <p class="mb-0">No transactions found.</p>
+            </div>
+        }
+        else
+        {
+            <div class="table-responsive">
+                <table class="table table-striped table-hover table-bordered mb-0">
+                    <thead class="table-active fw-semibold">
+                        <tr>
+                            <th>Reference</th>
+                            <th>Description</th>
+                            <th>Category</th>
+                            <th>Type</th>
+                            <th>Status</th>
+                            <th>Amount</th>
+                            <th>Date</th>
+                            @if (role == "Admin") { <th class="text-end">Action</th> }
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var t in Model)
+                        {
+                            <tr>
+                                <td class="text-muted small">@t.Reference</td>
+                                <td class="fw-semibold">@t.Description</td>
+                                <td class="small">@t.Category</td>
+                                <td>
+                                    <span class="badge @(t.Type=="Credit"?"bg-success":"bg-danger")">
+                                        <i class="bi bi-arrow-@(t.Type=="Credit"?"up":"down") me-1"></i>@t.Type
+                                    </span>
+                                </td>
+                                <td>
+                                    <span class="badge @(t.Status=="Completed"?"bg-success":t.Status=="Pending"?"bg-warning text-dark":"bg-danger")">
+                                        @t.Status
+                                    </span>
+                                </td>
+                                <td class="fw-bold @(t.Type=="Credit"?"text-success":"text-danger")">
+                                    @(t.Type=="Credit"?"+":"-")₱@String.Format("{0:N2}",t.Amount)
+                                </td>
+                                <td class="small text-muted">@t.Date.ToString("MMM dd, yyyy HH:mm")</td>
+                                @if (role == "Admin")
+                                {
+                                    <td class="text-end">
+                                        <form asp-action="Delete" asp-route-id="@t.Id" method="post" class="mb-0"
+                                              onsubmit="return confirm('Delete this transaction?')">
+                                            @Html.AntiForgeryToken()
+                                            <button type="submit" class="btn btn-danger btn-sm">
+                                                <i class="bi bi-trash-fill"></i>
+                                            </button>
+                                        </form>
+                                    </td>
+                                }
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+
+    </div>
 </div>

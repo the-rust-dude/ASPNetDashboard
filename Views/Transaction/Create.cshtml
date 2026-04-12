@@ -1,79 +1,96 @@
 @model ASPNetDashboard.Models.TransactionModel
 @{ ViewData["Title"] = "New Transaction"; }
 
-<div style="max-width:640px;">
-    <div class="mb-3">
-        <a asp-action="Index" class="btn btn-outline-secondary btn-sm">
-            <i class="bi bi-arrow-left me-1"></i>Back to Transactions
-        </a>
-    </div>
+<!-- ── Heading ── -->
+<div class="mb-4">
+    <a asp-action="Index" class="btn btn-outline-secondary btn-sm mb-3">
+        <i class="bi bi-arrow-left me-1"></i>Back to Transactions
+    </a>
+    <h4 class="fw-bold mb-0"><i class="bi bi-plus-circle-fill text-success me-2"></i>Record New Transaction</h4>
+    <p class="text-muted small">Reference ID is auto-generated on save.</p>
+</div>
 
-    <div class="form-wrap">
-        <div class="form-header d-flex align-items-center gap-3">
-            <div class="form-h-icon"><i class="bi bi-plus-circle-fill"></i></div>
-            <div>
-                <div class="form-h-title">Record New Transaction</div>
-                <div class="form-h-sub">Reference ID is auto-generated on save.</div>
+<!-- ── Form card ── -->
+<div class="row">
+    <div class="col-sm-12 col-md-10 col-lg-6">
+        <div class="card border-0 shadow-sm">
+            <div class="card-body p-4">
+
+                <form asp-action="Create" method="post" novalidate>
+                    @Html.AntiForgeryToken()
+
+                    <!-- Description -->
+                    <div class="mb-3">
+                        <label asp-for="Description" class="form-label fw-semibold">Description</label>
+                        <input asp-for="Description" class="form-control" placeholder="e.g. Client payment received" />
+                        <span asp-validation-for="Description" class="text-danger small"></span>
+                    </div>
+
+                    <!-- Amount + Type -->
+                    <div class="row g-3 mb-3">
+                        <div class="col-sm-12 col-md-6">
+                            <label asp-for="Amount" class="form-label fw-semibold">Amount (₱)</label>
+                            <div class="input-group">
+                                <span class="input-group-text">₱</span>
+                                <input asp-for="Amount" type="number" step="0.01" class="form-control" placeholder="0.00" />
+                            </div>
+                            <span asp-validation-for="Amount" class="text-danger small"></span>
+                        </div>
+                        <div class="col-sm-12 col-md-6">
+                            <label asp-for="Type" class="form-label fw-semibold">Transaction Type</label>
+                            <select asp-for="Type" class="form-select">
+                                <option value="">— Select Type —</option>
+                                <option value="Credit">Credit (Incoming)</option>
+                                <option value="Debit">Debit (Outgoing)</option>
+                            </select>
+                            <span asp-validation-for="Type" class="text-danger small"></span>
+                        </div>
+                    </div>
+
+                    <!-- Category + Status -->
+                    <div class="row g-3 mb-4">
+                        <div class="col-sm-12 col-md-6">
+                            <label asp-for="Category" class="form-label fw-semibold">Category</label>
+                            <input asp-for="Category" class="form-control" list="cat-list"
+                                   placeholder="e.g. Income, Equipment…" />
+                            <datalist id="cat-list">
+                                <option value="Income" />
+                                <option value="Equipment" />
+                                <option value="Supplies" />
+                                <option value="Software" />
+                                <option value="Payroll" />
+                                <option value="Utilities" />
+                                <option value="Marketing" />
+                                <option value="Other" />
+                            </datalist>
+                            <span asp-validation-for="Category" class="text-danger small"></span>
+                        </div>
+                        <div class="col-sm-12 col-md-6">
+                            <label asp-for="Status" class="form-label fw-semibold">Status</label>
+                            <select asp-for="Status" class="form-select">
+                                <option value="Completed">Completed</option>
+                                <option value="Pending">Pending</option>
+                                <option value="Failed">Failed</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="alert alert-info py-2 small mb-4">
+                        <i class="bi bi-info-circle-fill me-1"></i>
+                        A unique <strong>Reference ID</strong> will be assigned automatically when saved.
+                    </div>
+
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn btn-success">
+                            <i class="bi bi-check-lg me-1"></i>Record Transaction
+                        </button>
+                        <a asp-action="Index" class="btn btn-outline-secondary">Cancel</a>
+                    </div>
+
+                </form>
+
             </div>
         </div>
-
-        <form asp-action="Create" method="post" novalidate>
-            @Html.AntiForgeryToken()
-            <div class="row g-3">
-                <div class="col-12">
-                    <label asp-for="Description" class="form-label"></label>
-                    <input asp-for="Description" class="form-control" placeholder="e.g. Client payment received" />
-                    <span asp-validation-for="Description" class="invalid-feedback d-block"></span>
-                </div>
-                <div class="col-md-6">
-                    <label asp-for="Amount" class="form-label"></label>
-                    <div class="input-group">
-                        <span class="input-group-text">₱</span>
-                        <input asp-for="Amount" type="number" step="0.01" class="form-control" placeholder="0.00" />
-                    </div>
-                    <span asp-validation-for="Amount" class="invalid-feedback d-block"></span>
-                </div>
-                <div class="col-md-6">
-                    <label asp-for="Type" class="form-label"></label>
-                    <select asp-for="Type" class="form-select">
-                        <option value="">— Select Type —</option>
-                        <option value="Credit">Credit (Incoming)</option>
-                        <option value="Debit">Debit (Outgoing)</option>
-                    </select>
-                    <span asp-validation-for="Type" class="invalid-feedback d-block"></span>
-                </div>
-                <div class="col-md-6">
-                    <label asp-for="Category" class="form-label"></label>
-                    <input asp-for="Category" class="form-control" list="cat-list" placeholder="e.g. Income, Equipment…" />
-                    <datalist id="cat-list">
-                        <option value="Income" />
-                        <option value="Equipment" />
-                        <option value="Supplies" />
-                        <option value="Software" />
-                        <option value="Payroll" />
-                        <option value="Utilities" />
-                        <option value="Marketing" />
-                        <option value="Other" />
-                    </datalist>
-                    <span asp-validation-for="Category" class="invalid-feedback d-block"></span>
-                </div>
-                <div class="col-md-6">
-                    <label asp-for="Status" class="form-label"></label>
-                    <select asp-for="Status" class="form-select">
-                        <option value="Completed">Completed</option>
-                        <option value="Pending">Pending</option>
-                        <option value="Failed">Failed</option>
-                    </select>
-                </div>
-            </div>
-
-            <div class="d-flex gap-2 mt-4 pt-3" style="border-top:1px solid var(--border);">
-                <button type="submit" class="btn btn-primary">
-                    <i class="bi bi-check-lg me-1"></i>Record Transaction
-                </button>
-                <a asp-action="Index" class="btn btn-outline-secondary">Cancel</a>
-            </div>
-        </form>
     </div>
 </div>
 

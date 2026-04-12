@@ -1,72 +1,102 @@
 @model ASPNetDashboard.Models.UserModel
-@{ ViewData["Title"] = "Add User"; }
+@{ ViewData["Title"] = "Form — Add User"; }
 
-<div style="max-width:680px;">
-    <div class="mb-3">
-        <a asp-action="Index" class="btn btn-outline-secondary btn-sm">
-            <i class="bi bi-arrow-left me-1"></i>Back to Users
-        </a>
-    </div>
+<!-- ── Page heading ── -->
+<div class="mb-4">
+    <a asp-action="Index" class="btn btn-outline-secondary btn-sm mb-3">
+        <i class="bi bi-arrow-left me-1"></i>Back to Table
+    </a>
+    <h4 class="fw-bold mb-0"><i class="bi bi-person-plus-fill text-primary me-2"></i>Add New User</h4>
+    <p class="text-muted small">All fields are required. Password is hashed before storage.</p>
+</div>
 
-    <div class="form-wrap">
-        <div class="form-header d-flex align-items-center gap-3">
-            <div class="form-h-icon"><i class="bi bi-person-plus-fill"></i></div>
-            <div>
-                <div class="form-h-title">Add New User</div>
-                <div class="form-h-sub">All fields required. Password hashed with PBKDF2-SHA256.</div>
+<!-- ── Form card ── -->
+<div class="row">
+    <div class="col-sm-12 col-md-10 col-lg-7">
+        <div class="card border-0 shadow-sm">
+            <div class="card-body p-4">
+
+                <form asp-action="Create" method="post" novalidate>
+                    @Html.AntiForgeryToken()
+
+                    <!-- Row 1: Full Name + Email -->
+                    <div class="row g-3 mb-3">
+                        <div class="col-sm-12 col-md-6">
+                            <label asp-for="Name" class="form-label fw-semibold">Full Name</label>
+                            <input asp-for="Name" class="form-control" placeholder="e.g. Juan Dela Cruz" />
+                            <span asp-validation-for="Name" class="text-danger small"></span>
+                        </div>
+                        <div class="col-sm-12 col-md-6">
+                            <label asp-for="Email" class="form-label fw-semibold">Email Address</label>
+                            <input asp-for="Email" type="email" class="form-control" placeholder="user@example.com" />
+                            <span asp-validation-for="Email" class="text-danger small"></span>
+                        </div>
+                    </div>
+
+                    <!-- Row 2: Course/Department (dropdown) + Age -->
+                    <div class="row g-3 mb-3">
+                        <div class="col-sm-12 col-md-6">
+                            <label asp-for="Department" class="form-label fw-semibold">Course / Department</label>
+                            <select asp-for="Department" class="form-select">
+                                <option value="">— Select Course —</option>
+                                <option value="Engineering">Engineering</option>
+                                <option value="Computer Science">Computer Science</option>
+                                <option value="Information Technology">Information Technology</option>
+                                <option value="Business Administration">Business Administration</option>
+                                <option value="Finance">Finance</option>
+                                <option value="Marketing">Marketing</option>
+                                <option value="Operations">Operations</option>
+                                <option value="Other">Other</option>
+                            </select>
+                            <span asp-validation-for="Department" class="text-danger small"></span>
+                        </div>
+                        <div class="col-sm-12 col-md-3">
+                            <label asp-for="Age" class="form-label fw-semibold">Age</label>
+                            <input asp-for="Age" type="number" class="form-control" placeholder="18–60" />
+                            <span asp-validation-for="Age" class="text-danger small"></span>
+                        </div>
+                        <div class="col-sm-12 col-md-3">
+                            <label asp-for="Status" class="form-label fw-semibold">Status</label>
+                            <select asp-for="Status" class="form-select">
+                                <option value="Active">Active</option>
+                                <option value="Inactive">Inactive</option>
+                                <option value="Suspended">Suspended</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Row 3: Password fields -->
+                    <div class="row g-3 mb-4">
+                        <div class="col-sm-12 col-md-6">
+                            <label asp-for="Password" class="form-label fw-semibold">Password</label>
+                            <input asp-for="Password" type="password" class="form-control" placeholder="Min. 6 characters" />
+                            <span asp-validation-for="Password" class="text-danger small"></span>
+                        </div>
+                        <div class="col-sm-12 col-md-6">
+                            <label asp-for="ConfirmPassword" class="form-label fw-semibold">Confirm Password</label>
+                            <input asp-for="ConfirmPassword" type="password" class="form-control" placeholder="Re-enter password" />
+                            <span asp-validation-for="ConfirmPassword" class="text-danger small"></span>
+                        </div>
+                    </div>
+
+                    <!-- Info alert -->
+                    <div class="alert alert-info py-2 small mb-4">
+                        <i class="bi bi-info-circle-fill me-1"></i>
+                        Passwords are stored as a <strong>PBKDF2-SHA256</strong> hash — never in plain text.
+                    </div>
+
+                    <!-- Action buttons -->
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-check-lg me-1"></i>Create User
+                        </button>
+                        <a asp-action="Index" class="btn btn-outline-secondary">Cancel</a>
+                    </div>
+
+                </form>
+
             </div>
         </div>
-
-        <form asp-action="Create" method="post" novalidate>
-            @Html.AntiForgeryToken()
-            <div class="row g-3">
-                <div class="col-md-6">
-                    <label asp-for="Name" class="form-label"></label>
-                    <input asp-for="Name" class="form-control" placeholder="Full name" />
-                    <span asp-validation-for="Name" class="invalid-feedback d-block"></span>
-                </div>
-                <div class="col-md-6">
-                    <label asp-for="Email" class="form-label"></label>
-                    <input asp-for="Email" type="email" class="form-control" placeholder="user@example.com" />
-                    <span asp-validation-for="Email" class="invalid-feedback d-block"></span>
-                </div>
-                <div class="col-md-4">
-                    <label asp-for="Age" class="form-label"></label>
-                    <input asp-for="Age" type="number" class="form-control" placeholder="18–60" />
-                    <span asp-validation-for="Age" class="invalid-feedback d-block"></span>
-                </div>
-                <div class="col-md-4">
-                    <label asp-for="Department" class="form-label"></label>
-                    <input asp-for="Department" class="form-control" placeholder="e.g. Engineering" />
-                    <span asp-validation-for="Department" class="invalid-feedback d-block"></span>
-                </div>
-                <div class="col-md-4">
-                    <label asp-for="Status" class="form-label"></label>
-                    <select asp-for="Status" class="form-select">
-                        <option value="Active">Active</option>
-                        <option value="Inactive">Inactive</option>
-                        <option value="Suspended">Suspended</option>
-                    </select>
-                </div>
-                <div class="col-md-6">
-                    <label asp-for="Password" class="form-label"></label>
-                    <input asp-for="Password" type="password" class="form-control" placeholder="Min 6 characters" />
-                    <span asp-validation-for="Password" class="invalid-feedback d-block"></span>
-                </div>
-                <div class="col-md-6">
-                    <label asp-for="ConfirmPassword" class="form-label"></label>
-                    <input asp-for="ConfirmPassword" type="password" class="form-control" placeholder="Re-enter password" />
-                    <span asp-validation-for="ConfirmPassword" class="invalid-feedback d-block"></span>
-                </div>
-            </div>
-
-            <div class="d-flex gap-2 mt-4 pt-3" style="border-top:1px solid var(--border);">
-                <button type="submit" class="btn btn-primary">
-                    <i class="bi bi-check-lg me-1"></i>Create User
-                </button>
-                <a asp-action="Index" class="btn btn-outline-secondary">Cancel</a>
-            </div>
-        </form>
     </div>
 </div>
 
