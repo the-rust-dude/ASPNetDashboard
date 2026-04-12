@@ -1,20 +1,20 @@
-# Nexus — ASP.NET Core MVC Operations Dashboard
+# Student System — ASP.NET Core MVC Dashboard
 
-A redesigned dashboard with **SQLite persistence**, **cookie-based login**, and an **OpsPulse-inspired dark SaaS UI**.
+A functional student/user management dashboard with **SQLite persistence**, **cookie-based authentication**, and a clean **Bootstrap 5** light/dark theme.
 
 ---
 
 ## 🚀 Getting Started
 
 ### Prerequisites
-- [.NET 9 SDK](https://dotnet.microsoft.com/download/dotnet/9.0)
+- [.NET 9 SDK](https://dotnet.microsoft.com/download/dotnet/9.0) or later.
 
 ### Run the app
 ```bash
 dotnet restore
 dotnet run
 ```
-Open `http://localhost:5000` in your browser.
+Open the provided `localhost` URL in your browser.
 
 ---
 
@@ -25,56 +25,45 @@ Open `http://localhost:5000` in your browser.
 | Admin  | admin@nexus.io     | Admin@123    |
 | Viewer | viewer@nexus.io    | Viewer@123   |
 
-> These are seeded automatically on first run. Change them via the DB after launch.
+> **Note:** Passwords are hashed with **PBKDF2-SHA256**. The credentials are seeded in `Data/DbInitializer.cs`.
 
 ---
 
 ## 🗄️ Database (SQLite)
 
-The database file `nexus.db` is created automatically in the project root on first run using `EnsureCreated()` + the seed method in `Data/DbInitializer.cs`.
+The system uses SQLite for data persistence. The database file `nexus.db` is managed via EF Core.
 
 **Tables:**
-- `LoginUsers` — Dashboard operators (auth users)
-- `Users` — Managed user records (CRUD)
-- `Transactions` — Financial transaction records
+- `LoginUsers` — System operators with different access levels.
+- `Users` — Main user/student records (CRUD).
+- `Transactions` — Activity/Financial logs.
 
-**Connection string** is in `appsettings.json`:
+**Connection string** (in `appsettings.json`):
 ```json
 "DefaultConnection": "Data Source=nexus.db"
 ```
 
 ---
 
-## 🔑 Authentication
+## 🔑 Key Features
 
-- Uses **ASP.NET Core Cookie Authentication** (no Identity overhead)
-- Passwords hashed with **PBKDF2-SHA256** (100k iterations, 16-byte salt, 32-byte hash)
-- Cookie expires in **8 hours** (30 days if "Keep me signed in" checked)
-- Claims: `NameIdentifier`, `Name`, `Email`, `Role`
-
----
-
-## 👮 Role-Based Access
-
-| Action              | Admin | Viewer |
-|---------------------|-------|--------|
-| View Dashboard      | ✅    | ✅     |
-| View Users          | ✅    | ✅     |
-| Create/Edit/Delete  | ✅    | ❌     |
-| View Transactions   | ✅    | ✅     |
-| Add/Delete Tx       | ✅    | ❌     |
+- **Auth System**: Secure cookie-based authentication with PBKDF2 hashing.
+- **Role Management**: 
+  - **Admin**: Full CRUD access for Users and Transactions.
+  - **Viewer**: Read-only access to records.
+- **User CRUD**: Management of name, email, age, department, and status.
+- **Transaction Logs**: Track and filter system activities or financial data.
+- **Responsive UI**: Built with Bootstrap 5, featuring a persistent sidebar and modern dashboard aesthetic.
+- **Theme Support**: Includes a built-in light/dark mode toggle.
 
 ---
 
-## 🎨 Design
+## 🎨 Design & UI
 
-Inspired by [OpsPulse – AI Ops & Compliance SaaS Dashboard](https://me.muz.li/orbix-studio/opspulse-ai-operations-compliance-saas-dashboard-design):
-- Deep navy dark theme (`#080c18`)
-- Electric blue + violet accent system
-- Fine grid overlay with radial glows
-- Glass-morphism cards with subtle borders
-- Status dot indicators with CSS pulse animation
-- Inter font, tabular-nums for data
+- **Framework**: Bootstrap 5.3.3
+- **Icons**: Bootstrap Icons 1.11.3
+- **Layout**: Sidebar-driven navigation with a clean, responsive content area.
+- **Validation**: Full server-side (ModelState) and client-side (jQuery Validation) support with clear visual feedback.
 
 ---
 
@@ -82,36 +71,25 @@ Inspired by [OpsPulse – AI Ops & Compliance SaaS Dashboard](https://me.muz.li/
 
 ```
 Controllers/
-  AccountController.cs     ← Login / Logout
-  DashboardController.cs   ← Home overview
-  UserController.cs        ← User CRUD
-  TransactionController.cs ← Transaction CRUD
+  AccountController.cs     ← Login / Logout logic
+  DashboardController.cs   ← Home overview & stats
+  UserController.cs        ← User/Student CRUD
+  TransactionController.cs ← Transaction management
 
 Data/
-  AppDbContext.cs          ← EF Core DbContext
-  DbInitializer.cs         ← Seed data
-  PasswordHelper.cs        ← PBKDF2 hashing
+  AppDbContext.cs          ← Entity Framework DbContext
+  DbInitializer.cs         ← Database seeding logic
+  PasswordHelper.cs        ← PBKDF2 hashing utility
 
 Models/
-  LoginUser.cs             ← Auth user + LoginViewModel
-  UserModel.cs             ← Managed user
-  TransactionModel.cs      ← Transaction record
+  LoginUser.cs             ← Auth models
+  UserModel.cs             ← User entity with Data Annotations
+  TransactionModel.cs      ← Transaction record entity
 
 Views/
-  Account/Login.cshtml     ← Standalone login page
-  Dashboard/Index.cshtml
-  User/{Index,Create,Edit}.cshtml
-  Transaction/{Index,Create}.cshtml
-  Shared/_Layout.cshtml    ← Dark SaaS shell
+  Account/Login.cshtml     ← Modern login page with failure memes
+  Dashboard/Index.cshtml   ← Quick stats overview
+  User/                    ← User management views
+  Transaction/             ← Transaction history and creation
+  Shared/_Layout.cshtml    ← Main dashboard layout with theme support
 ```
-
----
-
-## ⚙️ Key Packages
-
-| Package | Version | Purpose |
-|---------|---------|---------|
-| `Microsoft.EntityFrameworkCore.Sqlite` | 9.0.0 | SQLite ORM |
-| `Microsoft.EntityFrameworkCore.Design` | 9.0.0 | EF tooling |
-
-No third-party auth libraries — pure ASP.NET Core built-ins.

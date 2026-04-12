@@ -1,6 +1,6 @@
-# 🛠️ ASPNetDashboard - Setup & Getting Started
+# 🛠️ Student System Dashboard - Setup & Getting Started
 
-Welcome to the **ASP.NET Core MVC Dashboard**! This guide will help you get the project up and running in minutes.
+Welcome to the **Student Management Dashboard**! This guide will help you get the project up and running in minutes.
 
 ---
 
